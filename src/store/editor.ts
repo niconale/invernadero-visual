@@ -54,9 +54,6 @@ export const useEditor = create<EditorState>()(
         publico: "TODO PÚBLICO",
         cta: "ENTRADAS DISPONIBLES",
       },
-      format: "4:5",
-      preset: "A",
-      values: {},
       textColor: "crema",
       image: defaultImage,
       setFamily: (id) => {
