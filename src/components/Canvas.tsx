@@ -134,16 +134,18 @@ function ProgramacionRender({
       <div
         style={{
           position: "absolute",
-          top: PAD - 18,
+          top: PAD - 12,
           left: PAD,
-          right: PAD + DATE_SIZE + 40,
+          right: PAD + DATE_SIZE + 30,
           fontFamily: BEBAS,
           color: RED,
           fontSize: titleSize,
           lineHeight: 0.88,
-          letterSpacing: "0.005em",
+          letterSpacing: "0em",
           textTransform: "uppercase",
           textShadow: "0 2px 18px rgba(0,0,0,0.35)",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
         }}
       >
         {family.label}
