@@ -80,7 +80,7 @@ function ProgramacionRender({
   const DATE_SIZE = 168;
 
   // Title sizing: fit within left padding and the date-box column.
-  const baseTitle = 96 * titleScale;
+  const baseTitle = 84 * titleScale;
   const titleSize = baseTitle;
 
   return (
