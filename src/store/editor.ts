@@ -46,7 +46,14 @@ export const useEditor = create<EditorState>()(
       templateId: FAMILIES[0].templates[0].id,
       format: "4:5",
       preset: "A",
-      values: {},
+      values: {
+        dia: "14",
+        mes: "JUNIO",
+        titulo: "PIES SOBRE LA TIERRA",
+        hora: "21:00 H",
+        publico: "TODO PÚBLICO",
+        cta: "ENTRADAS DISPONIBLES",
+      },
       textColor: "crema",
       image: defaultImage,
       setFamily: (id) => {
@@ -62,7 +69,7 @@ export const useEditor = create<EditorState>()(
       clearImage: () => set((s) => ({ image: { ...defaultImage, url: null } })),
     }),
     {
-      name: "invernadero-editor-v1",
+      name: "invernadero-editor-v2",
       partialize: (s) => ({
         familyId: s.familyId,
         templateId: s.templateId,
