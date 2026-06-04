@@ -340,6 +340,9 @@ function EditorPage() {
           mask={s.mask}
           scale={scale}
           blockPositions={s.blockPositions}
+          hiddenBlocks={s.hiddenBlocks}
+          blockSizes={s.blockSizes}
+          mergeHoraPublico={s.mergeHoraPublico}
           onBlockMove={s.setBlockPos}
           useSingleQuotes={s.useSingleQuotes}
           snapping={s.snapping}
