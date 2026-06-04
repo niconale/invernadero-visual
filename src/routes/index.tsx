@@ -191,25 +191,6 @@ function EditorPage() {
           </div>
         </Section>
 
-        <Section title="Texto">
-          <Label className="text-xs">Color del texto</Label>
-          <div className="grid grid-cols-3 gap-2 mt-1">
-            {(["crema", "blanco", "negro"] as const).map((c) => (
-              <button
-                key={c}
-                onClick={() => s.setTextColor(c)}
-                className="rounded-md px-2 py-1.5 text-xs border capitalize"
-                style={{
-                  background: s.textColor === c ? "var(--color-marca-verde)" : "transparent",
-                  color: s.textColor === c ? "var(--color-marca-crema)" : "var(--color-marca-verde)",
-                  borderColor: "rgba(0,0,0,0.12)",
-                }}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </Section>
 
         <Section title="Imagen">
           <input
