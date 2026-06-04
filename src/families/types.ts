@@ -22,12 +22,16 @@ export type PresetId = "A" | "B" | "C";
 export interface LayoutPreset {
   id: PresetId;
   label: string;
-  // Block position: where the main text block lives
-  block: "abajo-izq" | "abajo-centro" | "arriba-izq" | "centro" | "abajo-der";
-  // Image visibility: photo background or solid color
-  variant: "foto" | "color" | "color-foto";
-  // Visual style accent
-  accent: "estandar" | "barra-lateral" | "marco";
+  // Minimal token-only variations. Never changes structure, colors or typography.
+  tokens: {
+    // Programación
+    ctaAlign?: "center" | "left";
+    titleScale?: number; // multiplier on base title size, ~0.95..1.08
+    // Residencias
+    verticalSide?: "right" | "left";
+    verticalOpacity?: number; // 0.6..1
+    blockBottom?: number; // px from bottom of safe zone
+  };
 }
 
 export interface TemplateDefinition {
@@ -37,6 +41,7 @@ export interface TemplateDefinition {
   fields: FieldDef[];
   presets: LayoutPreset[];
   requiresPhoto?: boolean;
+  defaultValues?: FieldValues;
   copyPromptHint?: string;
 }
 

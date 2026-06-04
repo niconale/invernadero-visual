@@ -10,8 +10,6 @@ interface CanvasProps {
   format: FormatId;
   values: FieldValues;
   image: ImageState;
-  textColor?: "crema" | "blanco" | "negro";
-  useQuotes?: boolean;
   scale: number;
 }
 
@@ -19,10 +17,25 @@ const BEBAS = '"Bebas Neue", "DM Sans", sans-serif';
 const DM = '"DM Sans", sans-serif';
 const CREMA = "#F3EDE0";
 
+/** Normalize overlay slider (0..80) to a multiplier centered around 1. */
+function overlayK(overlay: number): number {
+  return Math.max(0.6, Math.min(1.4, overlay / 50));
+}
+
+/** Wrap a string in « » only if it doesn't already start with a quote char. */
+function quoted(s: string): string {
+  const t = s.trim();
+  if (!t) return "";
+  if (/^[«"“'`]/.test(t)) return t;
+  return `«${t}»`;
+}
+
 function ImageBg({ image }: { image: ImageState }) {
   if (!image.url) {
     return <div style={{ position: "absolute", inset: 0, background: "#1a1a1a" }} />;
   }
+  // Brightness centered at 50 → 1.0 (no filter clipping when user doesn't touch it)
+  const b = 0.5 + image.brightness / 100; // 0.5..1.5
   return (
     <img
       src={image.url}
@@ -35,11 +48,13 @@ function ImageBg({ image }: { image: ImageState }) {
         height: "100%",
         objectFit: "cover",
         transform: `translate(${image.x}%, ${image.y}%) scale(${image.zoom})`,
-        filter: `brightness(${0.5 + image.brightness / 100})`,
+        filter: `brightness(${b})`,
       }}
     />
   );
 }
+
+/* ───────────────────────── PROGRAMACIÓN ───────────────────────── */
 
 function ProgramacionRender({
   family, preset, format, values, image,
@@ -55,45 +70,96 @@ function ProgramacionRender({
   const cta = (values.cta || "").trim().toUpperCase();
 
   const RED = family.color;
+  const k = overlayK(image.overlay);
 
-  // preset variants
-  const titleSize = preset.id === "C" ? 200 : titulo.length > 22 ? 150 : 178;
-  const dateBoxSize = preset.id === "C" ? 195 : 168;
-  const ctaAlign: "center" | "left" = preset.id === "B" ? "left" : "center";
-  const overlayStart = preset.id === "C" ? 0.5 : 0.55;
-  const ov = Math.max(0.3, image.overlay / 100);
+  const ctaAlign = preset.tokens.ctaAlign ?? "center";
+  const titleScale = preset.tokens.titleScale ?? 1;
+
+  // Layout numbers (1080x1350 reference)
+  const PAD = 70;
+  const DATE_SIZE = 168;
+
+  // Title sizing: fit within left padding and the date-box column.
+  const baseTitle = 84 * titleScale;
+  const titleSize = baseTitle;
 
   return (
     <>
       <ImageBg image={image} />
 
-      {/* Top shadow to make red title readable */}
+      {/* ───── Graduated mask stack ───── */}
+      {/* Top fade: gives the orange title contrast */}
       <div
+        aria-hidden
         style={{
           position: "absolute",
           inset: 0,
-          background: `linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.15) 18%, rgba(0,0,0,0) 30%)`,
+          background: `linear-gradient(180deg,
+            rgba(0,0,0,${0.55 * k}) 0%,
+            rgba(0,0,0,${0.35 * k}) 12%,
+            rgba(0,0,0,${0.12 * k}) 24%,
+            rgba(0,0,0,0) 38%)`,
+          mixBlendMode: "multiply",
         }}
       />
-
-      {/* Bottom gradient */}
+      {/* Bottom long fade: legibility for white title + CTA */}
       <div
+        aria-hidden
         style={{
           position: "absolute",
           inset: 0,
-          background: `linear-gradient(180deg, rgba(0,0,0,0) ${overlayStart * 100}%, rgba(0,0,0,${ov * 0.85}) 78%, rgba(0,0,0,${Math.min(ov + 0.2, 0.98)}) 100%)`,
+          background: `linear-gradient(180deg,
+            rgba(0,0,0,0) 40%,
+            rgba(0,0,0,${0.18 * k}) 58%,
+            rgba(0,0,0,${0.55 * k}) 80%,
+            rgba(0,0,0,${0.92 * k}) 100%)`,
+          mixBlendMode: "multiply",
+        }}
+      />
+      {/* Radial behind date box, helps red-on-red */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(circle at calc(100% - ${PAD + DATE_SIZE / 2}px) ${PAD + DATE_SIZE / 2}px,
+            rgba(0,0,0,${0.45 * k}) 0%,
+            rgba(0,0,0,${0.22 * k}) 25%,
+            rgba(0,0,0,0) 55%)`,
+          mixBlendMode: "multiply",
         }}
       />
 
-      {/* Date box top-right */}
+      {/* Big PROGRAMACIÓN title (top, left, orange) */}
+      <div
+        style={{
+          position: "absolute",
+          top: PAD - 12,
+          left: PAD,
+          right: PAD + DATE_SIZE + 30,
+          fontFamily: BEBAS,
+          color: RED,
+          fontSize: titleSize,
+          lineHeight: 0.88,
+          letterSpacing: "0em",
+          textTransform: "uppercase",
+          textShadow: "0 2px 18px rgba(0,0,0,0.35)",
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {family.label}
+      </div>
+
+      {/* Date box (top-right, red) */}
       {(dia || mes) && (
         <div
           style={{
             position: "absolute",
-            top: 70,
-            right: 70,
-            width: dateBoxSize,
-            height: dateBoxSize,
+            top: PAD,
+            right: PAD,
+            width: DATE_SIZE,
+            height: DATE_SIZE,
             background: RED,
             display: "flex",
             flexDirection: "column",
@@ -101,44 +167,27 @@ function ProgramacionRender({
             justifyContent: "center",
             color: "#fff",
             fontFamily: BEBAS,
-            lineHeight: 0.85,
-            paddingTop: 8,
+            lineHeight: 0.82,
+            paddingTop: 10,
+            boxShadow: "0 6px 24px rgba(0,0,0,0.25)",
           }}
         >
-          <span style={{ fontSize: dateBoxSize * 0.62, letterSpacing: "-0.02em" }}>{dia || "—"}</span>
-          <span style={{ fontSize: dateBoxSize * 0.18, letterSpacing: "0.08em", marginTop: 10 }}>{mes}</span>
+          <span style={{ fontSize: DATE_SIZE * 0.62, letterSpacing: "-0.02em" }}>{dia || "—"}</span>
+          <span style={{ fontSize: DATE_SIZE * 0.17, letterSpacing: "0.1em", marginTop: 12 }}>{mes}</span>
         </div>
       )}
 
-      {/* Big PROGRAMACIÓN title */}
+      {/* Bottom block */}
       <div
         style={{
           position: "absolute",
-          top: 70,
-          left: 70,
-          right: dateBoxSize + 110,
-          fontFamily: BEBAS,
-          color: RED,
-          fontSize: titleSize,
-          lineHeight: 0.88,
-          letterSpacing: "0.01em",
-          textTransform: "uppercase",
-        }}
-      >
-        {family.label}
-      </div>
-
-      {/* Bottom content block */}
-      <div
-        style={{
-          position: "absolute",
-          left: 70,
-          right: 70,
-          bottom: 80,
+          left: PAD,
+          right: PAD,
+          bottom: 90,
           display: "flex",
           flexDirection: "column",
           alignItems: ctaAlign === "center" ? "center" : "flex-start",
-          gap: 22,
+          gap: 24,
           color: CREMA,
           textAlign: ctaAlign,
         }}
@@ -147,44 +196,45 @@ function ProgramacionRender({
           <div
             style={{
               fontFamily: BEBAS,
-              fontSize: titulo.length > 24 ? 64 : 76,
+              fontSize: titulo.length > 26 ? 64 : 78,
               lineHeight: 0.95,
               letterSpacing: "0.01em",
               color: "#fff",
               maxWidth: "100%",
               wordBreak: "break-word",
+              textShadow: "0 2px 16px rgba(0,0,0,0.4)",
             }}
           >
-            «{titulo}»
+            {quoted(titulo)}
           </div>
         )}
         {(hora || publico) && (
           <div
             style={{
               fontFamily: BEBAS,
-              fontSize: 40,
+              fontSize: 38,
               lineHeight: 1,
-              letterSpacing: "0.06em",
+              letterSpacing: "0.08em",
               color: "#fff",
               opacity: 0.95,
             }}
           >
-            {[hora, publico].filter(Boolean).join("  ·  ")}
+            {[hora, publico].filter(Boolean).join("   ·   ")}
           </div>
         )}
         {cta && (
           <div
             style={{
-              marginTop: 8,
+              marginTop: 6,
               background: RED,
               color: "#fff",
               fontFamily: BEBAS,
               fontSize: 38,
-              letterSpacing: "0.08em",
-              padding: "20px 38px",
-              minWidth: 330,
+              letterSpacing: "0.1em",
+              padding: "20px 42px",
               textAlign: "center",
               lineHeight: 1,
+              boxShadow: "0 6px 24px rgba(0,0,0,0.3)",
             }}
           >
             {cta}
@@ -194,6 +244,8 @@ function ProgramacionRender({
     </>
   );
 }
+
+/* ───────────────────────── RESIDENCIAS ───────────────────────── */
 
 function ResidenciasRender({
   family, preset, format, values, image,
@@ -206,63 +258,99 @@ function ResidenciasRender({
   const programa = (values.programa || "").trim().toUpperCase();
 
   const PLUM = family.color;
-  const verticalSide: "right" | "left" = preset.id === "B" ? "left" : "right";
-  const verticalOpacity = preset.id === "C" ? 0.55 : 0.95;
-  const blockBottom = preset.id === "C" ? 200 : 90;
-  const ov = image.overlay / 100;
+  const k = overlayK(image.overlay);
 
-  // vertical text — rotate via writing-mode
+  const verticalSide = preset.tokens.verticalSide ?? "right";
+  const verticalOpacity = preset.tokens.verticalOpacity ?? 0.95;
+  const blockBottom = preset.tokens.blockBottom ?? 110;
+
+  const PAD = 70;
+  const VERTICAL_FONT = 168;
+
+  // Vertical text via writing-mode. Side controls anchor; rotate text 180° when
+  // reading from left to keep ascenders pointing outward.
   const verticalStyle: React.CSSProperties = {
     position: "absolute",
-    top: 80,
-    bottom: 80,
-    [verticalSide]: 60,
+    top: PAD,
+    bottom: PAD,
+    [verticalSide]: PAD - 10,
+    width: VERTICAL_FONT,
     fontFamily: BEBAS,
     color: PLUM,
-    fontSize: 168,
-    lineHeight: 0.85,
+    fontSize: VERTICAL_FONT,
+    lineHeight: 0.9,
     letterSpacing: "0.02em",
+    textTransform: "uppercase",
+    opacity: verticalOpacity,
+    whiteSpace: "nowrap",
     writingMode: "vertical-rl",
     transform: verticalSide === "left" ? "rotate(180deg)" : "none",
-    opacity: verticalOpacity,
-    textTransform: "uppercase",
     display: "flex",
-    alignItems: verticalSide === "left" ? "flex-end" : "flex-start",
+    alignItems: verticalSide === "right" ? "flex-start" : "flex-start",
+    justifyContent: "flex-start",
+    textShadow: "0 2px 18px rgba(0,0,0,0.35)",
+    overflow: "hidden",
   };
 
   return (
     <>
       <ImageBg image={image} />
 
-      {/* Diagonal-ish dark overlay: stronger on bottom-left */}
+      {/* ───── Graduated mask stack ───── */}
+      {/* Bottom long fade for the text block */}
       <div
+        aria-hidden
         style={{
           position: "absolute",
           inset: 0,
-          background: `linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,${Math.max(0.35, ov)}) 95%)`,
+          background: `linear-gradient(180deg,
+            rgba(0,0,0,0) 35%,
+            rgba(0,0,0,${0.2 * k}) 55%,
+            rgba(0,0,0,${0.55 * k}) 78%,
+            rgba(0,0,0,${0.88 * k}) 100%)`,
+          mixBlendMode: "multiply",
         }}
       />
+      {/* Side fade (where vertical RESIDENCIAS sits) */}
       <div
+        aria-hidden
         style={{
           position: "absolute",
           inset: 0,
-          background: `linear-gradient(${verticalSide === "right" ? "270deg" : "90deg"}, rgba(0,0,0,0) 55%, rgba(0,0,0,${ov * 0.5}) 100%)`,
+          background: `linear-gradient(${verticalSide === "right" ? "270deg" : "90deg"},
+            rgba(0,0,0,0) 55%,
+            rgba(0,0,0,${0.25 * k}) 82%,
+            rgba(0,0,0,${0.55 * k}) 100%)`,
+          mixBlendMode: "multiply",
+        }}
+      />
+      {/* Soft corner radial reinforces the block area (bottom-left) */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(ellipse at ${verticalSide === "right" ? "20%" : "80%"} 95%,
+            rgba(0,0,0,${0.55 * k}) 0%,
+            rgba(0,0,0,${0.25 * k}) 35%,
+            rgba(0,0,0,0) 65%)`,
+          mixBlendMode: "multiply",
         }}
       />
 
       {/* Vertical RESIDENCIAS */}
       <div style={verticalStyle}>{family.label}</div>
 
-      {/* Bottom-left block */}
+      {/* Bottom text block */}
       <div
         style={{
           position: "absolute",
-          left: 70,
-          right: 220,
+          left: verticalSide === "left" ? PAD + VERTICAL_FONT + 30 : PAD,
+          right: verticalSide === "right" ? PAD + VERTICAL_FONT - 20 : PAD,
           bottom: blockBottom,
           display: "flex",
           flexDirection: "column",
-          gap: 16,
+          gap: 18,
         }}
       >
         {artista && (
@@ -270,9 +358,10 @@ function ResidenciasRender({
             style={{
               fontFamily: BEBAS,
               color: PLUM,
-              fontSize: artista.length > 22 ? 70 : 84,
+              fontSize: artista.length > 22 ? 78 : 92,
               lineHeight: 0.9,
               letterSpacing: "0.01em",
+              textShadow: "0 2px 14px rgba(0,0,0,0.35)",
             }}
           >
             {artista}
@@ -283,12 +372,13 @@ function ResidenciasRender({
             style={{
               fontFamily: BEBAS,
               color: "#fff",
-              fontSize: titulo.length > 24 ? 52 : 62,
+              fontSize: titulo.length > 24 ? 56 : 68,
               lineHeight: 0.95,
               letterSpacing: "0.01em",
+              textShadow: "0 2px 14px rgba(0,0,0,0.4)",
             }}
           >
-            «{titulo}»
+            {quoted(titulo)}
           </div>
         )}
         {programa && (
@@ -296,9 +386,9 @@ function ResidenciasRender({
             style={{
               fontFamily: DM,
               color: "#fff",
-              fontSize: 26,
-              letterSpacing: "0.16em",
-              lineHeight: 1.3,
+              fontSize: 22,
+              letterSpacing: "0.18em",
+              lineHeight: 1.35,
               fontWeight: 500,
               marginTop: 8,
               opacity: 0.92,
@@ -312,8 +402,10 @@ function ResidenciasRender({
   );
 }
 
+/* ───────────────────────── Canvas wrapper ───────────────────────── */
+
 export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
-  { family, template, preset, format, values, image, scale },
+  { family, preset, format, values, image, scale },
   ref,
 ) {
   const dims = FORMATS[format];

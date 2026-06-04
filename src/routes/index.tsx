@@ -93,10 +93,10 @@ function EditorPage() {
   const validations: string[] = [];
   if ((s.values.titulo || "").length > 36) validations.push("El título es largo, puede romper la jerarquía.");
   if (s.familyId === "programacion" && !s.values.cta) validations.push("Programación necesita un CTA.");
-  if (s.textColor !== "negro" && s.image.url && s.image.overlay < 30 && preset.variant !== "color")
+  if (s.image.url && s.image.overlay < 35)
     validations.push("Overlay bajo: el texto puede no leerse sobre la foto.");
-  if (s.textColor !== "negro" && s.image.brightness > 75 && preset.variant !== "color")
-    validations.push("La foto está muy clara para texto claro. Subí overlay o cambiá a texto oscuro.");
+  if (s.image.url && s.image.brightness > 75)
+    validations.push("La foto está muy clara. Subí overlay o bajá brillo.");
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--color-marca-crema)" }}>
@@ -315,7 +315,6 @@ function EditorPage() {
           format={s.format}
           values={s.values}
           image={s.image}
-          textColor={s.textColor}
           scale={scale}
         />
         <p className="text-xs text-muted-foreground mt-4">
