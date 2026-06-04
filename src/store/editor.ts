@@ -94,6 +94,9 @@ export const useEditor = create<EditorState>()(
       image: defaultImage,
       mask: defaultMask,
       blockPositions: {},
+      hiddenBlocks: {},
+      blockSizes: {},
+      mergeHoraPublico: false,
       useSingleQuotes: true,
       snapping: false,
       showSafeZone: false,
@@ -113,13 +116,25 @@ export const useEditor = create<EditorState>()(
       setBlockPos: (blockId, pos) => set((s) => ({
         blockPositions: { ...s.blockPositions, [blockKey(s.familyId, s.templateId, blockId)]: pos },
       })),
+      setBlockHidden: (blockId, hidden) => set((s) => ({
+        hiddenBlocks: { ...s.hiddenBlocks, [blockKey(s.familyId, s.templateId, blockId)]: hidden },
+      })),
+      setBlockSize: (blockId, mult) => set((s) => ({
+        blockSizes: { ...s.blockSizes, [blockKey(s.familyId, s.templateId, blockId)]: mult },
+      })),
+      setMergeHoraPublico: (v) => set({ mergeHoraPublico: v }),
       resetBlocks: () => set((s) => {
         const prefix = `${s.familyId}.${s.templateId}.`;
-        const next: BlockPositions = {};
-        for (const [k, v] of Object.entries(s.blockPositions)) {
-          if (!k.startsWith(prefix)) next[k] = v;
-        }
-        return { blockPositions: next };
+        const filt = <T,>(obj: Record<string, T>) => {
+          const next: Record<string, T> = {};
+          for (const [k, v] of Object.entries(obj)) if (!k.startsWith(prefix)) next[k] = v;
+          return next;
+        };
+        return {
+          blockPositions: filt(s.blockPositions),
+          hiddenBlocks: filt(s.hiddenBlocks),
+          blockSizes: filt(s.blockSizes),
+        };
       }),
       toggleQuotes: () => set((s) => ({ useSingleQuotes: !s.useSingleQuotes })),
       setSnapping: (v) => set({ snapping: v }),
@@ -127,7 +142,7 @@ export const useEditor = create<EditorState>()(
       setReferenceCaptions: (v) => set({ referenceCaptions: v }),
     }),
     {
-      name: "invernadero-editor-v4",
+      name: "invernadero-editor-v5",
       partialize: (s) => ({
         familyId: s.familyId,
         templateId: s.templateId,
@@ -137,6 +152,9 @@ export const useEditor = create<EditorState>()(
         image: { ...s.image, url: null },
         mask: s.mask,
         blockPositions: s.blockPositions,
+        hiddenBlocks: s.hiddenBlocks,
+        blockSizes: s.blockSizes,
+        mergeHoraPublico: s.mergeHoraPublico,
         useSingleQuotes: s.useSingleQuotes,
         snapping: s.snapping,
         showSafeZone: s.showSafeZone,
