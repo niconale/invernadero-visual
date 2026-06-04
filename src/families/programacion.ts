@@ -26,9 +26,11 @@ const baseDefaults: FieldValues = {
   mes: "JUNIO",
   titulo: "PIES SOBRE LA TIERRA",
   hora: "21:00 H",
-  publico: "TODO PÚBLICO",
+  publico: "PÚBLICO FAMILIAR",
   cta: "ENTRADAS DISPONIBLES",
 };
+
+const PUBLICO_OPTIONS = ["PÚBLICO FAMILIAR", "TODOS LOS PÚBLICOS", "PÚBLICO ADULTO"];
 
 const blocks: BlockDef[] = [
   {
@@ -59,11 +61,21 @@ const blocks: BlockDef[] = [
     color: "white", uppercase: true, quote: true,
   },
   {
-    id: "horaPublico",
-    label: "Hora · público",
+    id: "hora",
+    label: "Hora",
     kind: "text",
+    bind: "hora",
     x: 50, y: 80, align: "center", maxW: 88,
     fontFamily: "bebas", fontSize: 36, letterSpacing: "0.08em",
+    color: "white", uppercase: true,
+  },
+  {
+    id: "publico",
+    label: "Público",
+    kind: "text",
+    bind: "publico",
+    x: 50, y: 83.5, align: "center", maxW: 88,
+    fontFamily: "dm", fontSize: 22, letterSpacing: "0.18em", lineHeight: 1.3, weight: 500,
     color: "white", uppercase: true,
   },
   {
@@ -71,7 +83,7 @@ const blocks: BlockDef[] = [
     label: "CTA",
     kind: "cta",
     bind: "cta",
-    x: 50, y: 88, align: "center",
+    x: 50, y: 90, align: "center",
     fontFamily: "bebas", fontSize: 36, letterSpacing: "0.1em",
     color: "white", background: "family", uppercase: true, padding: 20,
   },
@@ -93,7 +105,7 @@ export const programacion: FamilyDefinition = {
       { id: "mes", label: "Mes", type: "text", maxLength: 12, required: true, placeholder: "JUNIO" },
       { id: "titulo", label: "Espectáculo", type: "text", maxLength: 40, required: true },
       { id: "hora", label: "Hora", type: "text", maxLength: 20, required: true },
-      { id: "publico", label: "Público", type: "text", maxLength: 30 },
+      { id: "publico", label: "Público", type: "text", maxLength: 30, options: PUBLICO_OPTIONS },
       { id: "cta", label: "CTA", type: "text", maxLength: 30, required: true },
     ]),
     tplBase("teaser", "Teaser / próximamente",
@@ -114,7 +126,7 @@ export const programacion: FamilyDefinition = {
         { id: "mes", label: "Mes", type: "text", maxLength: 12, required: true },
         { id: "titulo", label: "Espectáculo", type: "text", maxLength: 40, required: true },
         { id: "hora", label: "Hora", type: "text", maxLength: 20, required: true },
-        { id: "publico", label: "Público", type: "text", maxLength: 30 },
+        { id: "publico", label: "Público", type: "text", maxLength: 30, options: PUBLICO_OPTIONS },
         { id: "cta", label: "CTA", type: "text", maxLength: 30, required: true },
       ]),
     tplBase("entradas", "Entradas a la venta", "Apertura de venta.",
@@ -124,7 +136,7 @@ export const programacion: FamilyDefinition = {
         { id: "mes", label: "Mes", type: "text", maxLength: 12, required: true },
         { id: "titulo", label: "Espectáculo", type: "text", maxLength: 40, required: true },
         { id: "hora", label: "Hora", type: "text", maxLength: 20, required: true },
-        { id: "publico", label: "Público", type: "text", maxLength: 30 },
+        { id: "publico", label: "Público", type: "text", maxLength: 30, options: PUBLICO_OPTIONS },
         { id: "cta", label: "CTA", type: "text", maxLength: 30, required: true },
       ]),
   ],
