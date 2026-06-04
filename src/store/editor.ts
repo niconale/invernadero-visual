@@ -25,6 +25,8 @@ export interface MaskState {
 export type BlockPos = { x: number; y: number };
 /** Key = `${familyId}.${templateId}.${blockId}` */
 export type BlockPositions = Record<string, BlockPos>;
+export type BlockBooleans = Record<string, boolean>;
+export type BlockSizes = Record<string, number>; // multiplier (1 = default)
 
 export interface EditorState {
   familyId: string;
@@ -35,6 +37,9 @@ export interface EditorState {
   image: ImageState;
   mask: MaskState;
   blockPositions: BlockPositions;
+  hiddenBlocks: BlockBooleans;
+  blockSizes: BlockSizes;
+  mergeHoraPublico: boolean;
   useSingleQuotes: boolean;
   snapping: boolean;
   showSafeZone: boolean;
@@ -48,6 +53,9 @@ export interface EditorState {
   clearImage: () => void;
   setMask: (patch: Partial<MaskState>) => void;
   setBlockPos: (blockId: string, pos: BlockPos) => void;
+  setBlockHidden: (blockId: string, hidden: boolean) => void;
+  setBlockSize: (blockId: string, mult: number) => void;
+  setMergeHoraPublico: (v: boolean) => void;
   resetBlocks: () => void;
   toggleQuotes: () => void;
   setSnapping: (v: boolean) => void;
