@@ -18,14 +18,12 @@ export interface EditorState {
   format: FormatId;
   preset: PresetId;
   values: FieldValues;
-  textColor: "crema" | "blanco" | "negro";
   image: ImageState;
   setFamily: (id: string) => void;
   setTemplate: (id: string) => void;
   setFormat: (f: FormatId) => void;
   setPreset: (p: PresetId) => void;
   setValue: (k: string, v: string) => void;
-  setTextColor: (c: "crema" | "blanco" | "negro") => void;
   setImage: (patch: Partial<ImageState>) => void;
   clearImage: () => void;
 }
@@ -36,47 +34,60 @@ const defaultImage: ImageState = {
   x: 0,
   y: 0,
   brightness: 50,
-  overlay: 35,
+  overlay: 45,
 };
+
+// Merge: keep existing values for keys that the new template also uses;
+// fill missing keys from the template's defaultValues. Never wipe blindly.
+function mergeValues(familyId: string, templateId: string, current: FieldValues): FieldValues {
+  const tpl = (() => {
+    try { return getTemplate(familyId, templateId); } catch { return null; }
+  })();
+  if (!tpl) return current;
+  const fieldIds = new Set(tpl.fields.map((f) => f.id));
+  const defaults = tpl.defaultValues ?? {};
+  const next: FieldValues = {};
+  for (const id of fieldIds) {
+    const v = current[id];
+    next[id] = v != null && v !== "" ? v : (defaults[id] ?? "");
+  }
+  return next;
+}
 
 export const useEditor = create<EditorState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       familyId: "programacion",
       templateId: FAMILIES[0].templates[0].id,
       format: "4:5",
       preset: "A",
-      values: {
-        dia: "14",
-        mes: "JUNIO",
-        titulo: "PIES SOBRE LA TIERRA",
-        hora: "21:00 H",
-        publico: "TODO PÚBLICO",
-        cta: "ENTRADAS DISPONIBLES",
-      },
-      textColor: "crema",
+      values: { ...(FAMILIES[0].templates[0].defaultValues ?? {}) },
       image: defaultImage,
       setFamily: (id) => {
-        const tpl = FAMILIES.find((f) => f.id === id)?.templates[0];
-        set({ familyId: id, templateId: tpl?.id ?? "", values: {}, preset: "A" });
+        const fam = FAMILIES.find((f) => f.id === id);
+        const tplId = fam?.templates[0].id ?? "";
+        set({
+          familyId: id,
+          templateId: tplId,
+          values: mergeValues(id, tplId, get().values),
+        });
       },
-      setTemplate: (id) => set({ templateId: id, values: {}, preset: "A" }),
+      setTemplate: (id) =>
+        set((s) => ({ templateId: id, values: mergeValues(s.familyId, id, s.values) })),
       setFormat: (f) => set({ format: f }),
       setPreset: (p) => set({ preset: p }),
       setValue: (k, v) => set((s) => ({ values: { ...s.values, [k]: v } })),
-      setTextColor: (c) => set({ textColor: c }),
       setImage: (patch) => set((s) => ({ image: { ...s.image, ...patch } })),
-      clearImage: () => set((s) => ({ image: { ...defaultImage, url: null } })),
+      clearImage: () => set(() => ({ image: { ...defaultImage, url: null } })),
     }),
     {
-      name: "invernadero-editor-v2",
+      name: "invernadero-editor-v3",
       partialize: (s) => ({
         familyId: s.familyId,
         templateId: s.templateId,
         format: s.format,
         preset: s.preset,
         values: s.values,
-        textColor: s.textColor,
         image: { ...s.image, url: null },
       }),
     },

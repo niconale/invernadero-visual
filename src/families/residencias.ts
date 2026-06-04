@@ -1,10 +1,16 @@
-import type { FamilyDefinition, LayoutPreset } from "./types";
+import type { FamilyDefinition, LayoutPreset, FieldValues } from "./types";
 
 const PRESETS: LayoutPreset[] = [
-  { id: "A", label: "Vertical derecha", block: "abajo-izq", variant: "foto", accent: "estandar" },
-  { id: "B", label: "Vertical izquierda", block: "abajo-der", variant: "foto", accent: "estandar" },
-  { id: "C", label: "Bloque alto · vertical translúcido", block: "abajo-izq", variant: "foto", accent: "marco" },
+  { id: "A", label: "Vertical derecha", tokens: { verticalSide: "right", verticalOpacity: 0.95, blockBottom: 110 } },
+  { id: "B", label: "Vertical izquierda", tokens: { verticalSide: "left", verticalOpacity: 0.95, blockBottom: 110 } },
+  { id: "C", label: "Vertical translúcido", tokens: { verticalSide: "right", verticalOpacity: 0.55, blockBottom: 150 } },
 ];
+
+const baseDefaults: FieldValues = {
+  artista: "CÍA. DEL VIENTO",
+  titulo: "CUERPOS SUSPENDIDOS",
+  programa: "PROGRAMA DE RESIDENCIAS · GERMINACIÓN",
+};
 
 export const residencias: FamilyDefinition = {
   id: "residencias",
@@ -18,6 +24,7 @@ export const residencias: FamilyDefinition = {
       label: "Germinación",
       description: "Residencia en programa Germinación.",
       requiresPhoto: true,
+      defaultValues: baseDefaults,
       fields: [
         { id: "artista", label: "Artista / compañía", type: "text", maxLength: 40, required: true, placeholder: "CÍA. DEL VIENTO" },
         { id: "titulo", label: "Proyecto", type: "text", maxLength: 50, required: true, placeholder: "CUERPOS SUSPENDIDOS" },
@@ -30,6 +37,7 @@ export const residencias: FamilyDefinition = {
       label: "Proceso / diario",
       description: "Entrada de diario de proceso.",
       requiresPhoto: true,
+      defaultValues: { ...baseDefaults, titulo: "DÍA 04", programa: "DIARIO DE PROCESO · RESIDENCIAS" },
       fields: [
         { id: "artista", label: "Artista", type: "text", maxLength: 40, required: true },
         { id: "titulo", label: "Título de la entrada", type: "text", maxLength: 50, required: true, placeholder: "DÍA 04" },
@@ -42,6 +50,7 @@ export const residencias: FamilyDefinition = {
       label: "Muestra / salida",
       description: "Muestra abierta de residencia.",
       requiresPhoto: true,
+      defaultValues: { ...baseDefaults, programa: "MUESTRA ABIERTA · RESIDENCIAS" },
       fields: [
         { id: "artista", label: "Artista", type: "text", maxLength: 40, required: true },
         { id: "titulo", label: "Proyecto", type: "text", maxLength: 50, required: true },
@@ -54,6 +63,7 @@ export const residencias: FamilyDefinition = {
       label: "Convocatoria",
       description: "Llamado a residentes.",
       requiresPhoto: true,
+      defaultValues: { artista: "CONVOCATORIA ABIERTA", titulo: "RESIDENCIAS 2026", programa: "CIERRE 30 JUNIO · MÁS INFO EN BIO" },
       fields: [
         { id: "artista", label: "Bajada", type: "text", maxLength: 40, required: true, placeholder: "CONVOCATORIA ABIERTA" },
         { id: "titulo", label: "Título", type: "text", maxLength: 50, required: true, placeholder: "RESIDENCIAS 2026" },
