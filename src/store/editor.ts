@@ -4,13 +4,27 @@ import type { FieldValues, FormatId, PresetId } from "@/families/types";
 import { FAMILIES, getTemplate } from "@/families";
 
 export interface ImageState {
-  url: string | null; // objectURL (not persisted)
-  zoom: number; // 1..3
-  x: number; // -50..50 (% offset from center)
+  url: string | null;
+  zoom: number;
+  x: number;
   y: number;
-  brightness: number; // 0..100 (perceived; user-set)
-  overlay: number; // 0..80 (% darkening overlay)
+  brightness: number;
+  overlay: number;
 }
+
+export interface MaskState {
+  top: number;       // 0..100 intensity
+  bottom: number;
+  left: number;
+  right: number;
+  feather: number;   // 0..100 controls falloff softness
+  size: number;      // 0..100 controls how far inward the mask reaches
+  vignette: number;  // 0..100
+}
+
+export type BlockPos = { x: number; y: number };
+/** Key = `${familyId}.${templateId}.${blockId}` */
+export type BlockPositions = Record<string, BlockPos>;
 
 export interface EditorState {
   familyId: string;
@@ -19,6 +33,12 @@ export interface EditorState {
   preset: PresetId;
   values: FieldValues;
   image: ImageState;
+  mask: MaskState;
+  blockPositions: BlockPositions;
+  useSingleQuotes: boolean;
+  snapping: boolean;
+  showSafeZone: boolean;
+  referenceCaptions: string;
   setFamily: (id: string) => void;
   setTemplate: (id: string) => void;
   setFormat: (f: FormatId) => void;
@@ -26,23 +46,24 @@ export interface EditorState {
   setValue: (k: string, v: string) => void;
   setImage: (patch: Partial<ImageState>) => void;
   clearImage: () => void;
+  setMask: (patch: Partial<MaskState>) => void;
+  setBlockPos: (blockId: string, pos: BlockPos) => void;
+  resetBlocks: () => void;
+  toggleQuotes: () => void;
+  setSnapping: (v: boolean) => void;
+  setShowSafeZone: (v: boolean) => void;
+  setReferenceCaptions: (v: string) => void;
 }
 
-const defaultImage: ImageState = {
-  url: null,
-  zoom: 1,
-  x: 0,
-  y: 0,
-  brightness: 50,
-  overlay: 45,
-};
+const defaultImage: ImageState = { url: null, zoom: 1, x: 0, y: 0, brightness: 50, overlay: 45 };
+const defaultMask: MaskState = { top: 55, bottom: 70, left: 0, right: 0, feather: 60, size: 45, vignette: 15 };
 
-// Merge: keep existing values for keys that the new template also uses;
-// fill missing keys from the template's defaultValues. Never wipe blindly.
+export function blockKey(familyId: string, templateId: string, blockId: string) {
+  return `${familyId}.${templateId}.${blockId}`;
+}
+
 function mergeValues(familyId: string, templateId: string, current: FieldValues): FieldValues {
-  const tpl = (() => {
-    try { return getTemplate(familyId, templateId); } catch { return null; }
-  })();
+  const tpl = (() => { try { return getTemplate(familyId, templateId); } catch { return null; } })();
   if (!tpl) return current;
   const fieldIds = new Set(tpl.fields.map((f) => f.id));
   const defaults = tpl.defaultValues ?? {};
@@ -63,25 +84,42 @@ export const useEditor = create<EditorState>()(
       preset: "A",
       values: { ...(FAMILIES[0].templates[0].defaultValues ?? {}) },
       image: defaultImage,
+      mask: defaultMask,
+      blockPositions: {},
+      useSingleQuotes: true,
+      snapping: false,
+      showSafeZone: false,
+      referenceCaptions: "",
       setFamily: (id) => {
         const fam = FAMILIES.find((f) => f.id === id);
         const tplId = fam?.templates[0].id ?? "";
-        set({
-          familyId: id,
-          templateId: tplId,
-          values: mergeValues(id, tplId, get().values),
-        });
+        set({ familyId: id, templateId: tplId, values: mergeValues(id, tplId, get().values) });
       },
-      setTemplate: (id) =>
-        set((s) => ({ templateId: id, values: mergeValues(s.familyId, id, s.values) })),
+      setTemplate: (id) => set((s) => ({ templateId: id, values: mergeValues(s.familyId, id, s.values) })),
       setFormat: (f) => set({ format: f }),
       setPreset: (p) => set({ preset: p }),
       setValue: (k, v) => set((s) => ({ values: { ...s.values, [k]: v } })),
       setImage: (patch) => set((s) => ({ image: { ...s.image, ...patch } })),
       clearImage: () => set(() => ({ image: { ...defaultImage, url: null } })),
+      setMask: (patch) => set((s) => ({ mask: { ...s.mask, ...patch } })),
+      setBlockPos: (blockId, pos) => set((s) => ({
+        blockPositions: { ...s.blockPositions, [blockKey(s.familyId, s.templateId, blockId)]: pos },
+      })),
+      resetBlocks: () => set((s) => {
+        const prefix = `${s.familyId}.${s.templateId}.`;
+        const next: BlockPositions = {};
+        for (const [k, v] of Object.entries(s.blockPositions)) {
+          if (!k.startsWith(prefix)) next[k] = v;
+        }
+        return { blockPositions: next };
+      }),
+      toggleQuotes: () => set((s) => ({ useSingleQuotes: !s.useSingleQuotes })),
+      setSnapping: (v) => set({ snapping: v }),
+      setShowSafeZone: (v) => set({ showSafeZone: v }),
+      setReferenceCaptions: (v) => set({ referenceCaptions: v }),
     }),
     {
-      name: "invernadero-editor-v3",
+      name: "invernadero-editor-v4",
       partialize: (s) => ({
         familyId: s.familyId,
         templateId: s.templateId,
@@ -89,6 +127,12 @@ export const useEditor = create<EditorState>()(
         preset: s.preset,
         values: s.values,
         image: { ...s.image, url: null },
+        mask: s.mask,
+        blockPositions: s.blockPositions,
+        useSingleQuotes: s.useSingleQuotes,
+        snapping: s.snapping,
+        showSafeZone: s.showSafeZone,
+        referenceCaptions: s.referenceCaptions,
       }),
     },
   ),
@@ -96,9 +140,5 @@ export const useEditor = create<EditorState>()(
 
 export function useCurrentTemplate() {
   const { familyId, templateId } = useEditor();
-  try {
-    return getTemplate(familyId, templateId);
-  } catch {
-    return FAMILIES[0].templates[0];
-  }
+  try { return getTemplate(familyId, templateId); } catch { return FAMILIES[0].templates[0]; }
 }

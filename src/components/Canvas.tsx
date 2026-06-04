@@ -1,7 +1,8 @@
-import { forwardRef } from "react";
+import { forwardRef, useRef, useCallback } from "react";
 import { FORMATS } from "@/families/types";
-import type { FamilyDefinition, TemplateDefinition, LayoutPreset, FieldValues, FormatId } from "@/families/types";
-import type { ImageState } from "@/store/editor";
+import type { FamilyDefinition, TemplateDefinition, LayoutPreset, FieldValues, FormatId, BlockDef, ColorRole } from "@/families/types";
+import type { ImageState, MaskState, BlockPositions } from "@/store/editor";
+import { blockKey } from "@/store/editor";
 
 interface CanvasProps {
   family: FamilyDefinition;
@@ -10,43 +11,42 @@ interface CanvasProps {
   format: FormatId;
   values: FieldValues;
   image: ImageState;
+  mask: MaskState;
   scale: number;
+  blockPositions: BlockPositions;
+  onBlockMove: (blockId: string, pos: { x: number; y: number }) => void;
+  useSingleQuotes: boolean;
+  snapping: boolean;
+  showSafeZone: boolean;
+  interactive: boolean;
 }
 
 const BEBAS = '"Bebas Neue", "DM Sans", sans-serif';
 const DM = '"DM Sans", sans-serif';
 const CREMA = "#F3EDE0";
 
-/** Normalize overlay slider (0..80) to a multiplier centered around 1. */
-function overlayK(overlay: number): number {
-  return Math.max(0.6, Math.min(1.4, overlay / 50));
-}
-
-/** Wrap a string in « » only if it doesn't already start with a quote char. */
-function quoted(s: string): string {
+function quoted(s: string, useSingle: boolean): string {
   const t = s.trim();
   if (!t) return "";
-  if (/^[«"“'`]/.test(t)) return t;
-  return `«${t}»`;
+  if (!useSingle) return t;
+  if (/^['']/.test(t)) return t;
+  return `'${t}'`;
+}
+
+function roleToColor(role: ColorRole, family: FamilyDefinition): string {
+  if (role === "family") return family.color;
+  if (role === "cream") return CREMA;
+  return "#FFFFFF";
 }
 
 function ImageBg({ image }: { image: ImageState }) {
-  if (!image.url) {
-    return <div style={{ position: "absolute", inset: 0, background: "#1a1a1a" }} />;
-  }
-  // Brightness centered at 50 → 1.0 (no filter clipping when user doesn't touch it)
-  const b = 0.5 + image.brightness / 100; // 0.5..1.5
+  if (!image.url) return <div style={{ position: "absolute", inset: 0, background: "#1a1a1a" }} />;
+  const b = 0.5 + image.brightness / 100;
   return (
     <img
-      src={image.url}
-      alt=""
-      crossOrigin="anonymous"
+      src={image.url} alt="" crossOrigin="anonymous"
       style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        height: "100%",
-        objectFit: "cover",
+        position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
         transform: `translate(${image.x}%, ${image.y}%) scale(${image.zoom})`,
         filter: `brightness(${b})`,
       }}
@@ -54,390 +54,282 @@ function ImageBg({ image }: { image: ImageState }) {
   );
 }
 
-/* ───────────────────────── PROGRAMACIÓN ───────────────────────── */
-
-function ProgramacionRender({
-  family, preset, format, values, image,
-}: {
-  family: FamilyDefinition; preset: LayoutPreset; format: FormatId; values: FieldValues; image: ImageState;
-}) {
-  const dims = FORMATS[format];
-  const dia = (values.dia || "").trim();
-  const mes = (values.mes || "").trim().toUpperCase();
-  const titulo = (values.titulo || "").trim().toUpperCase();
-  const hora = (values.hora || "").trim().toUpperCase();
-  const publico = (values.publico || "").trim().toUpperCase();
-  const cta = (values.cta || "").trim().toUpperCase();
-
-  const RED = family.color;
-  const k = overlayK(image.overlay);
-
-  const ctaAlign = preset.tokens.ctaAlign ?? "center";
-  const titleScale = preset.tokens.titleScale ?? 1;
-
-  // Layout numbers (1080x1350 reference)
-  const PAD = 70;
-  const DATE_SIZE = 168;
-
-  // Title sizing: fit within left padding and the date-box column.
-  const baseTitle = 84 * titleScale;
-  const titleSize = baseTitle;
-
+/** Graduated masks: each side has intensity + reach. Feather softens the falloff. */
+function MaskLayer({ mask, image }: { mask: MaskState; image: ImageState }) {
+  const overlay = image.overlay / 100; // base flat overlay
+  // Reach: fraction of canvas the mask covers from each edge.
+  const reach = 0.15 + (mask.size / 100) * 0.55; // 0.15..0.7
+  // Feather: how soft the inner edge is. Higher = softer.
+  const f = 0.3 + (mask.feather / 100) * 0.7; // 0.3..1.0
+  // Each side intensity (0..1)
+  const sides: Array<[string, number, string]> = [
+    ["180deg", mask.top / 100, "top"],
+    ["0deg", mask.bottom / 100, "bottom"],
+    ["90deg", mask.left / 100, "left"],
+    ["270deg", mask.right / 100, "right"],
+  ];
+  const stopEnd = `${(reach * 100).toFixed(1)}%`;
+  const stopMid = `${(reach * 100 * (1 - f * 0.6)).toFixed(1)}%`;
   return (
     <>
-      <ImageBg image={image} />
-
-      {/* ───── Graduated mask stack ───── */}
-      {/* Top fade: gives the orange title contrast */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(180deg,
-            rgba(0,0,0,${0.55 * k}) 0%,
-            rgba(0,0,0,${0.35 * k}) 12%,
-            rgba(0,0,0,${0.12 * k}) 24%,
-            rgba(0,0,0,0) 38%)`,
-          mixBlendMode: "multiply",
-        }}
-      />
-      {/* Bottom long fade: legibility for white title + CTA */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(180deg,
-            rgba(0,0,0,0) 40%,
-            rgba(0,0,0,${0.18 * k}) 58%,
-            rgba(0,0,0,${0.55 * k}) 80%,
-            rgba(0,0,0,${0.92 * k}) 100%)`,
-          mixBlendMode: "multiply",
-        }}
-      />
-      {/* Radial behind date box, helps red-on-red */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `radial-gradient(circle at calc(100% - ${PAD + DATE_SIZE / 2}px) ${PAD + DATE_SIZE / 2}px,
-            rgba(0,0,0,${0.45 * k}) 0%,
-            rgba(0,0,0,${0.22 * k}) 25%,
-            rgba(0,0,0,0) 55%)`,
-          mixBlendMode: "multiply",
-        }}
-      />
-
-      {/* Big PROGRAMACIÓN title (top, left, orange) */}
-      <div
-        style={{
-          position: "absolute",
-          top: PAD - 12,
-          left: PAD,
-          right: PAD + DATE_SIZE + 30,
-          fontFamily: BEBAS,
-          color: RED,
-          fontSize: titleSize,
-          lineHeight: 0.88,
-          letterSpacing: "0em",
-          textTransform: "uppercase",
-          textShadow: "0 2px 18px rgba(0,0,0,0.35)",
-          overflow: "hidden",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {family.label}
-      </div>
-
-      {/* Date box (top-right, red) */}
-      {(dia || mes) && (
-        <div
-          style={{
-            position: "absolute",
-            top: PAD,
-            right: PAD,
-            width: DATE_SIZE,
-            height: DATE_SIZE,
-            background: RED,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fff",
-            fontFamily: BEBAS,
-            lineHeight: 0.82,
-            paddingTop: 10,
-            boxShadow: "0 6px 24px rgba(0,0,0,0.25)",
-          }}
-        >
-          <span style={{ fontSize: DATE_SIZE * 0.62, letterSpacing: "-0.02em" }}>{dia || "—"}</span>
-          <span style={{ fontSize: DATE_SIZE * 0.17, letterSpacing: "0.1em", marginTop: 12 }}>{mes}</span>
-        </div>
+      {/* Flat overlay */}
+      {overlay > 0 && (
+        <div aria-hidden style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${overlay})` }} />
       )}
-
-      {/* Bottom block */}
-      <div
-        style={{
-          position: "absolute",
-          left: PAD,
-          right: PAD,
-          bottom: 90,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: ctaAlign === "center" ? "center" : "flex-start",
-          gap: 24,
-          color: CREMA,
-          textAlign: ctaAlign,
-        }}
-      >
-        {titulo && (
+      {sides.map(([angle, intensity, key]) =>
+        intensity <= 0 ? null : (
           <div
+            key={key}
+            aria-hidden
             style={{
-              fontFamily: BEBAS,
-              fontSize: titulo.length > 26 ? 64 : 78,
-              lineHeight: 0.95,
-              letterSpacing: "0.01em",
-              color: "#fff",
-              maxWidth: "100%",
-              wordBreak: "break-word",
-              textShadow: "0 2px 16px rgba(0,0,0,0.4)",
+              position: "absolute", inset: 0,
+              background: `linear-gradient(${angle},
+                rgba(0,0,0,${(intensity * 0.95).toFixed(3)}) 0%,
+                rgba(0,0,0,${(intensity * 0.6).toFixed(3)}) ${stopMid},
+                rgba(0,0,0,0) ${stopEnd})`,
+              mixBlendMode: "multiply",
             }}
-          >
-            {quoted(titulo)}
-          </div>
-        )}
-        {(hora || publico) && (
-          <div
-            style={{
-              fontFamily: BEBAS,
-              fontSize: 38,
-              lineHeight: 1,
-              letterSpacing: "0.08em",
-              color: "#fff",
-              opacity: 0.95,
-            }}
-          >
-            {[hora, publico].filter(Boolean).join("   ·   ")}
-          </div>
-        )}
-        {cta && (
-          <div
-            style={{
-              marginTop: 6,
-              background: RED,
-              color: "#fff",
-              fontFamily: BEBAS,
-              fontSize: 38,
-              letterSpacing: "0.1em",
-              padding: "20px 42px",
-              textAlign: "center",
-              lineHeight: 1,
-              boxShadow: "0 6px 24px rgba(0,0,0,0.3)",
-            }}
-          >
-            {cta}
-          </div>
-        )}
-      </div>
+          />
+        ),
+      )}
+      {mask.vignette > 0 && (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute", inset: 0,
+            background: `radial-gradient(ellipse at center,
+              rgba(0,0,0,0) 45%,
+              rgba(0,0,0,${(mask.vignette / 100 * 0.7).toFixed(3)}) 100%)`,
+            mixBlendMode: "multiply",
+          }}
+        />
+      )}
     </>
   );
 }
 
-/* ───────────────────────── RESIDENCIAS ───────────────────────── */
+function applyOverrides(block: BlockDef, preset: LayoutPreset): BlockDef {
+  const ov = preset.overrides?.[block.id];
+  return ov ? { ...block, ...ov } : block;
+}
 
-function ResidenciasRender({
-  family, preset, format, values, image,
-}: {
-  family: FamilyDefinition; preset: LayoutPreset; format: FormatId; values: FieldValues; image: ImageState;
-}) {
-  const dims = FORMATS[format];
-  const artista = (values.artista || "").trim().toUpperCase();
-  const titulo = (values.titulo || "").trim().toUpperCase();
-  const programa = (values.programa || "").trim().toUpperCase();
+function blockText(block: BlockDef, values: FieldValues, useSingleQuotes: boolean): string {
+  const raw = block.bind ? (values[block.bind] || "") : (block.staticText || "");
+  let t = raw;
+  if (block.uppercase) t = t.toUpperCase();
+  if (block.quote) t = quoted(t, useSingleQuotes);
+  return t;
+}
 
-  const PLUM = family.color;
-  const k = overlayK(image.overlay);
+interface DraggableProps {
+  block: BlockDef;
+  effectivePos: { x: number; y: number };
+  onMove: (pos: { x: number; y: number }) => void;
+  scale: number;
+  canvasW: number;
+  canvasH: number;
+  snapping: boolean;
+  interactive: boolean;
+  children: React.ReactNode;
+}
 
-  const verticalSide = preset.tokens.verticalSide ?? "right";
-  const verticalOpacity = preset.tokens.verticalOpacity ?? 0.95;
-  const blockBottom = preset.tokens.blockBottom ?? 110;
+function Draggable({ block, effectivePos, onMove, scale, canvasW, canvasH, snapping, interactive, children }: DraggableProps) {
+  const dragState = useRef<{ startX: number; startY: number; baseX: number; baseY: number } | null>(null);
 
-  const PAD = 70;
-  const VERTICAL_FONT = 168;
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (!interactive) return;
+    e.stopPropagation();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    dragState.current = { startX: e.clientX, startY: e.clientY, baseX: effectivePos.x, baseY: effectivePos.y };
+  }, [interactive, effectivePos.x, effectivePos.y]);
 
-  // Vertical text via writing-mode. Side controls anchor; rotate text 180° when
-  // reading from left to keep ascenders pointing outward.
-  const verticalStyle: React.CSSProperties = {
-    position: "absolute",
-    top: PAD,
-    bottom: PAD,
-    [verticalSide]: PAD - 10,
-    width: VERTICAL_FONT,
-    fontFamily: BEBAS,
-    color: PLUM,
-    fontSize: VERTICAL_FONT,
-    lineHeight: 0.9,
-    letterSpacing: "0.02em",
-    textTransform: "uppercase",
-    opacity: verticalOpacity,
-    whiteSpace: "nowrap",
-    writingMode: "vertical-rl",
-    transform: verticalSide === "left" ? "rotate(180deg)" : "none",
-    display: "flex",
-    alignItems: verticalSide === "right" ? "flex-start" : "flex-start",
-    justifyContent: "flex-start",
-    textShadow: "0 2px 18px rgba(0,0,0,0.35)",
-    overflow: "hidden",
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!dragState.current) return;
+    const dxPx = (e.clientX - dragState.current.startX) / scale;
+    const dyPx = (e.clientY - dragState.current.startY) / scale;
+    let nx = dragState.current.baseX + (dxPx / canvasW) * 100;
+    let ny = dragState.current.baseY + (dyPx / canvasH) * 100;
+    if (snapping) {
+      nx = Math.round(nx / 2.5) * 2.5;
+      ny = Math.round(ny / 2.5) * 2.5;
+    }
+    nx = Math.max(0, Math.min(100, nx));
+    ny = Math.max(0, Math.min(100, ny));
+    onMove({ x: nx, y: ny });
+  }, [scale, canvasW, canvasH, snapping, onMove]);
+
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    dragState.current = null;
+    try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {}
+  }, []);
+
+  const translate =
+    block.align === "center" ? "translate(-50%, 0)" :
+    block.align === "right" ? "translate(-100%, 0)" : "translate(0, 0)";
+
+  return (
+    <div
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{
+        position: "absolute",
+        left: `${effectivePos.x}%`,
+        top: `${effectivePos.y}%`,
+        transform: translate,
+        touchAction: "none",
+        cursor: interactive ? "move" : "default",
+        outline: interactive ? "1px dashed rgba(255,255,255,0.0)" : "none",
+        transition: "outline-color 120ms",
+      }}
+      onMouseEnter={(e) => { if (interactive) (e.currentTarget as HTMLElement).style.outlineColor = "rgba(255,255,255,0.5)"; }}
+      onMouseLeave={(e) => { if (interactive) (e.currentTarget as HTMLElement).style.outlineColor = "rgba(255,255,255,0)"; }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function BlockRender({
+  block, family, values, useSingleQuotes,
+}: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean }) {
+  const color = roleToColor(block.color, family);
+  const bg = block.background ? roleToColor(block.background, family) : undefined;
+  const fontFamily = block.fontFamily === "dm" ? DM : BEBAS;
+  const base: React.CSSProperties = {
+    fontFamily,
+    color,
+    fontSize: block.fontSize,
+    lineHeight: block.lineHeight ?? 1,
+    letterSpacing: block.letterSpacing ?? "0em",
+    fontWeight: block.weight as any,
+    textTransform: block.uppercase ? "uppercase" : "none",
+    textShadow: bg ? "none" : "0 2px 14px rgba(0,0,0,0.35)",
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    maxWidth: block.maxW ? `${(block.maxW / 100) * 1080}px` : undefined,
+    textAlign: block.align as any,
   };
 
-  return (
-    <>
-      <ImageBg image={image} />
-
-      {/* ───── Graduated mask stack ───── */}
-      {/* Bottom long fade for the text block */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(180deg,
-            rgba(0,0,0,0) 35%,
-            rgba(0,0,0,${0.2 * k}) 55%,
-            rgba(0,0,0,${0.55 * k}) 78%,
-            rgba(0,0,0,${0.88 * k}) 100%)`,
-          mixBlendMode: "multiply",
-        }}
-      />
-      {/* Side fade (where vertical RESIDENCIAS sits) */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `linear-gradient(${verticalSide === "right" ? "270deg" : "90deg"},
-            rgba(0,0,0,0) 55%,
-            rgba(0,0,0,${0.25 * k}) 82%,
-            rgba(0,0,0,${0.55 * k}) 100%)`,
-          mixBlendMode: "multiply",
-        }}
-      />
-      {/* Soft corner radial reinforces the block area (bottom-left) */}
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: `radial-gradient(ellipse at ${verticalSide === "right" ? "20%" : "80%"} 95%,
-            rgba(0,0,0,${0.55 * k}) 0%,
-            rgba(0,0,0,${0.25 * k}) 35%,
-            rgba(0,0,0,0) 65%)`,
-          mixBlendMode: "multiply",
-        }}
-      />
-
-      {/* Vertical RESIDENCIAS */}
-      <div style={verticalStyle}>{family.label}</div>
-
-      {/* Bottom text block */}
+  if (block.kind === "date-box") {
+    const dia = (values.dia || "").trim();
+    const mes = (values.mes || "").trim().toUpperCase();
+    const size = block.fontSize * 1.55;
+    return (
       <div
         style={{
-          position: "absolute",
-          left: verticalSide === "left" ? PAD + VERTICAL_FONT + 30 : PAD,
-          right: verticalSide === "right" ? PAD + VERTICAL_FONT - 20 : PAD,
-          bottom: blockBottom,
-          display: "flex",
-          flexDirection: "column",
-          gap: 18,
+          background: bg, color, width: size, height: size,
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          fontFamily, lineHeight: 0.82, paddingTop: 6,
+          boxShadow: "0 6px 24px rgba(0,0,0,0.25)",
         }}
       >
-        {artista && (
-          <div
-            style={{
-              fontFamily: BEBAS,
-              color: PLUM,
-              fontSize: artista.length > 22 ? 78 : 92,
-              lineHeight: 0.9,
-              letterSpacing: "0.01em",
-              textShadow: "0 2px 14px rgba(0,0,0,0.35)",
-            }}
-          >
-            {artista}
-          </div>
-        )}
-        {titulo && (
-          <div
-            style={{
-              fontFamily: BEBAS,
-              color: "#fff",
-              fontSize: titulo.length > 24 ? 56 : 68,
-              lineHeight: 0.95,
-              letterSpacing: "0.01em",
-              textShadow: "0 2px 14px rgba(0,0,0,0.4)",
-            }}
-          >
-            {quoted(titulo)}
-          </div>
-        )}
-        {programa && (
-          <div
-            style={{
-              fontFamily: DM,
-              color: "#fff",
-              fontSize: 22,
-              letterSpacing: "0.18em",
-              lineHeight: 1.35,
-              fontWeight: 500,
-              marginTop: 8,
-              opacity: 0.92,
-            }}
-          >
-            {programa}
-          </div>
-        )}
+        <span style={{ fontSize: block.fontSize, letterSpacing: "-0.02em" }}>{dia || "—"}</span>
+        <span style={{ fontSize: block.fontSize * (block.monthScale ?? 0.27), letterSpacing: "0.1em", marginTop: 10 }}>{mes}</span>
       </div>
-    </>
-  );
+    );
+  }
+
+  if (block.kind === "cta") {
+    const text = blockText(block, values, useSingleQuotes);
+    if (!text) return null;
+    return (
+      <div
+        style={{
+          ...base,
+          background: bg,
+          padding: `${block.padding ?? 20}px ${(block.padding ?? 20) * 2}px`,
+          boxShadow: "0 6px 24px rgba(0,0,0,0.3)",
+          textShadow: "none",
+        }}
+      >
+        {text}
+      </div>
+    );
+  }
+
+  if (block.kind === "vertical") {
+    const text = blockText(block, values, useSingleQuotes);
+    return (
+      <div
+        style={{
+          ...base,
+          writingMode: "vertical-rl",
+          textAlign: "left",
+          maxWidth: undefined,
+        }}
+      >
+        {text}
+      </div>
+    );
+  }
+
+  // text
+  const text = blockText(block, values, useSingleQuotes);
+  if (!text) return null;
+  return <div style={base}>{text}</div>;
 }
 
-/* ───────────────────────── Canvas wrapper ───────────────────────── */
+/* ────────────────── Canvas wrapper ────────────────── */
 
 export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
-  { family, preset, format, values, image, scale },
+  { family, template, preset, format, values, image, mask, scale,
+    blockPositions, onBlockMove, useSingleQuotes, snapping, showSafeZone, interactive },
   ref,
 ) {
   const dims = FORMATS[format];
+
   return (
     <div
       style={{
-        width: dims.w * scale,
-        height: dims.h * scale,
-        position: "relative",
-        overflow: "hidden",
-        background: "#0a0a0a",
-        boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
+        width: dims.w * scale, height: dims.h * scale,
+        position: "relative", overflow: "hidden",
+        background: "#0a0a0a", boxShadow: "0 8px 32px rgba(0,0,0,0.18)",
       }}
     >
       <div
         ref={ref}
         style={{
-          width: dims.w,
-          height: dims.h,
-          transform: `scale(${scale})`,
-          transformOrigin: "top left",
-          position: "relative",
-          overflow: "hidden",
-          background: "#0a0a0a",
+          width: dims.w, height: dims.h,
+          transform: `scale(${scale})`, transformOrigin: "top left",
+          position: "relative", overflow: "hidden", background: "#0a0a0a",
         }}
       >
-        {family.id === "programacion" && (
-          <ProgramacionRender family={family} preset={preset} format={format} values={values} image={image} />
+        <ImageBg image={image} />
+        <MaskLayer mask={mask} image={image} />
+
+        {showSafeZone && interactive && (
+          <div
+            aria-hidden
+            style={{
+              position: "absolute", inset: `${dims.h * 0.05}px ${dims.w * 0.06}px`,
+              border: "2px dashed rgba(255,255,255,0.35)", pointerEvents: "none",
+            }}
+          />
         )}
-        {family.id === "residencias" && (
-          <ResidenciasRender family={family} preset={preset} format={format} values={values} image={image} />
-        )}
+
+        {template.blocks.map((b) => {
+          const blk = applyOverrides(b, preset);
+          const key = blockKey(family.id, template.id, blk.id);
+          const custom = blockPositions[key];
+          const pos = custom ?? { x: blk.x, y: blk.y };
+          return (
+            <Draggable
+              key={blk.id}
+              block={blk}
+              effectivePos={pos}
+              onMove={(p) => onBlockMove(blk.id, p)}
+              scale={scale}
+              canvasW={dims.w}
+              canvasH={dims.h}
+              snapping={snapping}
+              interactive={interactive}
+            >
+              <BlockRender block={blk} family={family} values={values} useSingleQuotes={useSingleQuotes} />
+            </Draggable>
+          );
+        })}
       </div>
     </div>
   );

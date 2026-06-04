@@ -10,16 +10,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { exportNode, slugify } from "@/lib/export";
 import { generateCopy } from "@/lib/copy.functions";
 import { toast, Toaster } from "sonner";
-import { Loader2, Download, Sparkles, Upload, Trash2, Shuffle } from "lucide-react";
+import { Loader2, Download, Sparkles, Upload, Trash2, RotateCcw } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Generador de Plantillas · El Invernadero" },
+      { title: "Generador · El Invernadero" },
       { name: "description", content: "Generador de piezas de Instagram para El Invernadero Circo." },
     ],
   }),
@@ -42,12 +43,9 @@ function EditorPage() {
 
   useEffect(() => {
     const fit = () => {
-      const el = wrapRef.current;
-      if (!el) return;
+      const el = wrapRef.current; if (!el) return;
       const padding = 48;
-      const availW = el.clientWidth - padding;
-      const availH = el.clientHeight - padding;
-      const sc = Math.min(availW / dims.w, availH / dims.h, 0.7);
+      const sc = Math.min((el.clientWidth - padding) / dims.w, (el.clientHeight - padding) / dims.h, 0.7);
       setScale(Math.max(0.15, sc));
     };
     fit();
@@ -57,8 +55,7 @@ function EditorPage() {
 
   const onFile = (file: File) => {
     if (s.image.url) URL.revokeObjectURL(s.image.url);
-    const url = URL.createObjectURL(file);
-    s.setImage({ url, zoom: 1, x: 0, y: 0 });
+    s.setImage({ url: URL.createObjectURL(file), zoom: 1, x: 0, y: 0 });
   };
 
   const handleExport = async (format: "png" | "jpg") => {
@@ -68,63 +65,45 @@ function EditorPage() {
       const name = `${slugify(fam.label)}_${slugify(tpl.label)}_${slugify(s.values.titulo || "pieza")}_${s.format.replace(":", "x")}`;
       await exportNode(canvasRef.current, format, dims.w, dims.h, name);
       toast.success(`Exportado ${format.toUpperCase()}`);
-    } catch (e) {
-      console.error(e);
-      toast.error("No pude exportar. Revisá la consola.");
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) { console.error(e); toast.error("No pude exportar."); }
+    finally { setBusy(false); }
   };
 
   const handleCopy = async () => {
     setBusy(true);
     try {
-      const r = await callGenerateCopy({ data: { familia: s.familyId, plantilla: s.templateId, valores: s.values } });
+      const r = await callGenerateCopy({
+        data: { familia: s.familyId, plantilla: s.templateId, valores: s.values, referencias: s.referenceCaptions },
+      });
       setCopies(r.copies);
       toast.success(r.source === "ai" ? "Copy generado con IA" : "Copy local");
-    } catch (e) {
-      console.error(e);
-      toast.error("No pude generar copy");
-    } finally {
-      setBusy(false);
-    }
+    } catch (e) { console.error(e); toast.error("No pude generar copy"); }
+    finally { setBusy(false); }
   };
-
-  const validations: string[] = [];
-  if ((s.values.titulo || "").length > 36) validations.push("El título es largo, puede romper la jerarquía.");
-  if (s.familyId === "programacion" && !s.values.cta) validations.push("Programación necesita un CTA.");
-  if (s.image.url && s.image.overlay < 35)
-    validations.push("Overlay bajo: el texto puede no leerse sobre la foto.");
-  if (s.image.url && s.image.brightness > 75)
-    validations.push("La foto está muy clara. Subí overlay o bajá brillo.");
 
   return (
     <div className="flex h-screen overflow-hidden" style={{ background: "var(--color-marca-crema)" }}>
       <Toaster richColors position="top-center" />
-      {/* Left panel */}
       <aside className="w-[380px] shrink-0 border-r overflow-y-auto" style={{ borderColor: "rgba(0,0,0,0.08)", background: "#FBF7EE" }}>
         <div className="p-5 border-b" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
           <h1 className="text-base font-semibold tracking-tight" style={{ color: "var(--color-marca-verde)" }}>
             Generador · El Invernadero
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">MVP — Programación y Residencias</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Arrastrá los textos sobre el canvas</p>
         </div>
 
         <Section title="Familia">
           <div className="grid grid-cols-2 gap-2">
             {FAMILIES.map((f) => (
               <button
-                key={f.id}
-                onClick={() => s.setFamily(f.id)}
-                className="rounded-md px-3 py-2 text-sm font-medium transition-all border"
+                key={f.id} onClick={() => s.setFamily(f.id)}
+                className="rounded-md px-3 py-2 text-sm font-medium border"
                 style={{
                   background: s.familyId === f.id ? f.color : "transparent",
                   color: s.familyId === f.id ? f.textOnColor : "var(--color-marca-verde)",
                   borderColor: s.familyId === f.id ? f.color : "rgba(0,0,0,0.12)",
                 }}
-              >
-                {f.label}
-              </button>
+              >{f.label}</button>
             ))}
           </div>
         </Section>
@@ -133,9 +112,7 @@ function EditorPage() {
           <Select value={s.templateId} onValueChange={s.setTemplate}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              {fam.templates.map((t) => (
-                <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
-              ))}
+              {fam.templates.map((t) => <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground mt-2">{tpl.description}</p>
@@ -145,17 +122,14 @@ function EditorPage() {
           <div className="flex gap-2">
             {(Object.keys(FORMATS) as Array<keyof typeof FORMATS>).map((f) => (
               <button
-                key={f}
-                onClick={() => s.setFormat(f)}
+                key={f} onClick={() => s.setFormat(f)}
                 className="flex-1 rounded-md px-3 py-2 text-xs font-medium border"
                 style={{
                   background: s.format === f ? "var(--color-marca-verde)" : "transparent",
                   color: s.format === f ? "var(--color-marca-crema)" : "var(--color-marca-verde)",
                   borderColor: s.format === f ? "var(--color-marca-verde)" : "rgba(0,0,0,0.12)",
                 }}
-              >
-                {FORMATS[f].label}
-              </button>
+              >{FORMATS[f].label}</button>
             ))}
           </div>
         </Section>
@@ -165,49 +139,42 @@ function EditorPage() {
             {tpl.fields.map((field) => (
               <div key={field.id}>
                 <Label className="text-xs">
-                  {field.label}
-                  {field.required && <span style={{ color: "var(--color-marca-programacion)" }}> *</span>}
+                  {field.label}{field.required && <span style={{ color: fam.color }}> *</span>}
                 </Label>
                 {field.type === "textarea" ? (
                   <Textarea
                     value={s.values[field.id] || ""}
                     onChange={(e) => s.setValue(field.id, e.target.value)}
-                    placeholder={field.placeholder}
-                    maxLength={field.maxLength}
-                    rows={3}
-                    className="mt-1"
+                    placeholder={field.placeholder} maxLength={field.maxLength} rows={3} className="mt-1"
                   />
                 ) : (
                   <Input
                     value={s.values[field.id] || ""}
                     onChange={(e) => s.setValue(field.id, e.target.value)}
-                    placeholder={field.placeholder}
-                    maxLength={field.maxLength}
-                    className="mt-1"
+                    placeholder={field.placeholder} maxLength={field.maxLength} className="mt-1"
                   />
                 )}
               </div>
             ))}
           </div>
+          <div className="flex items-center justify-between mt-4 pt-3 border-t" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+            <div>
+              <Label className="text-xs">Comillas simples 'título'</Label>
+              <p className="text-[10px] text-muted-foreground">Activa el wrap 'así' en lugar de "así".</p>
+            </div>
+            <Switch checked={s.useSingleQuotes} onCheckedChange={s.toggleQuotes} />
+          </div>
         </Section>
 
-
         <Section title="Imagen">
-          <input
-            type="file"
-            accept="image/*"
-            id="img-upload"
-            className="hidden"
-            onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])}
-          />
+          <input type="file" accept="image/*" id="img-upload" className="hidden"
+            onChange={(e) => e.target.files?.[0] && onFile(e.target.files[0])} />
           <div className="flex gap-2">
             <Button variant="outline" size="sm" className="flex-1" onClick={() => document.getElementById("img-upload")?.click()}>
               <Upload className="w-3 h-3 mr-1" /> Subir
             </Button>
             {s.image.url && (
-              <Button variant="ghost" size="sm" onClick={s.clearImage}>
-                <Trash2 className="w-3 h-3" />
-              </Button>
+              <Button variant="ghost" size="sm" onClick={s.clearImage}><Trash2 className="w-3 h-3" /></Button>
             )}
           </div>
           {s.image.url && (
@@ -216,17 +183,27 @@ function EditorPage() {
               <SliderRow label="Posición X" value={s.image.x} min={-40} max={40} step={1} onChange={(v) => s.setImage({ x: v })} />
               <SliderRow label="Posición Y" value={s.image.y} min={-40} max={40} step={1} onChange={(v) => s.setImage({ y: v })} />
               <SliderRow label="Brillo" value={s.image.brightness} min={0} max={100} step={1} onChange={(v) => s.setImage({ brightness: v })} />
-              <SliderRow label="Overlay" value={s.image.overlay} min={0} max={80} step={1} onChange={(v) => s.setImage({ overlay: v })} />
+              <SliderRow label="Overlay base" value={s.image.overlay} min={0} max={80} step={1} onChange={(v) => s.setImage({ overlay: v })} />
             </div>
           )}
         </Section>
 
-        <Section title="Composición">
+        <Section title="Máscaras graduadas">
+          <div className="space-y-3">
+            <SliderRow label="Máscara superior" value={s.mask.top} min={0} max={100} step={1} onChange={(v) => s.setMask({ top: v })} />
+            <SliderRow label="Máscara inferior" value={s.mask.bottom} min={0} max={100} step={1} onChange={(v) => s.setMask({ bottom: v })} />
+            <SliderRow label="Máscara izquierda" value={s.mask.left} min={0} max={100} step={1} onChange={(v) => s.setMask({ left: v })} />
+            <SliderRow label="Máscara derecha" value={s.mask.right} min={0} max={100} step={1} onChange={(v) => s.setMask({ right: v })} />
+            <SliderRow label="Alcance / tamaño" value={s.mask.size} min={0} max={100} step={1} onChange={(v) => s.setMask({ size: v })} />
+            <SliderRow label="Suavidad (feather)" value={s.mask.feather} min={0} max={100} step={1} onChange={(v) => s.setMask({ feather: v })} />
+            <SliderRow label="Viñeteado" value={s.mask.vignette} min={0} max={100} step={1} onChange={(v) => s.setMask({ vignette: v })} />
+          </div>
+        </Section>
+
+        <Section title="Disposición">
           <div className="grid grid-cols-3 gap-2">
             {tpl.presets.map((p) => (
-              <button
-                key={p.id}
-                onClick={() => s.setPreset(p.id)}
+              <button key={p.id} onClick={() => s.setPreset(p.id)}
                 className="rounded-md px-2 py-3 text-xs border font-medium"
                 style={{
                   background: s.preset === p.id ? fam.color : "transparent",
@@ -234,28 +211,33 @@ function EditorPage() {
                   borderColor: s.preset === p.id ? fam.color : "rgba(0,0,0,0.12)",
                 }}
                 title={p.label}
-              >
-                {p.id}
-              </button>
+              >{p.id}</button>
             ))}
           </div>
           <p className="text-[11px] text-muted-foreground mt-2">{preset.label}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="mt-2 w-full"
-            onClick={() => {
-              const ids = tpl.presets.map((p) => p.id);
-              const next = ids[(ids.indexOf(s.preset) + 1) % ids.length];
-              s.setPreset(next);
-            }}
-          >
-            <Shuffle className="w-3 h-3 mr-1" /> Proponer otra disposición
+
+          <div className="flex items-center justify-between mt-3">
+            <Label className="text-xs">Snapping a grilla</Label>
+            <Switch checked={s.snapping} onCheckedChange={s.setSnapping} />
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <Label className="text-xs">Mostrar zona segura</Label>
+            <Switch checked={s.showSafeZone} onCheckedChange={s.setShowSafeZone} />
+          </div>
+          <Button variant="ghost" size="sm" className="w-full mt-3" onClick={s.resetBlocks}>
+            <RotateCcw className="w-3 h-3 mr-1" /> Restablecer posiciones
           </Button>
         </Section>
 
-        <Section title="Copy para el post">
-          <Button variant="outline" size="sm" className="w-full" onClick={handleCopy} disabled={busy}>
+        <Section title="Copy con tono Invernadero">
+          <Label className="text-xs">Captions de referencia (opcional)</Label>
+          <Textarea
+            value={s.referenceCaptions}
+            onChange={(e) => s.setReferenceCaptions(e.target.value)}
+            placeholder="Pegá aquí 3–10 captions reales de @elinvernadero para entrenar el tono."
+            rows={4} className="mt-1 text-xs"
+          />
+          <Button variant="outline" size="sm" className="w-full mt-3" onClick={handleCopy} disabled={busy}>
             {busy ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
             Generar copy
           </Button>
@@ -264,13 +246,8 @@ function EditorPage() {
               {copies.map((c, i) => (
                 <div key={i} className="text-xs p-2 rounded border bg-white" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
                   <p>{c}</p>
-                  <button
-                    className="text-[10px] mt-1 underline text-muted-foreground"
-                    onClick={() => {
-                      navigator.clipboard.writeText(c);
-                      toast.success("Copiado");
-                    }}
-                  >
+                  <button className="text-[10px] mt-1 underline text-muted-foreground"
+                    onClick={() => { navigator.clipboard.writeText(c); toast.success("Copiado"); }}>
                     copiar
                   </button>
                 </div>
@@ -292,21 +269,7 @@ function EditorPage() {
         </Section>
       </aside>
 
-      {/* Preview */}
       <main ref={wrapRef} className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-auto">
-        {validations.length > 0 && (
-          <div className="absolute top-4 left-4 right-4 flex flex-col gap-1 z-10">
-            {validations.map((v, i) => (
-              <div
-                key={i}
-                className="text-xs px-3 py-2 rounded-md border"
-                style={{ background: "#FFF4E5", borderColor: "#F2C994", color: "#7A4A12" }}
-              >
-                ⚠ {v}
-              </div>
-            ))}
-          </div>
-        )}
         <Canvas
           ref={canvasRef}
           family={fam}
@@ -315,10 +278,17 @@ function EditorPage() {
           format={s.format}
           values={s.values}
           image={s.image}
+          mask={s.mask}
           scale={scale}
+          blockPositions={s.blockPositions}
+          onBlockMove={s.setBlockPos}
+          useSingleQuotes={s.useSingleQuotes}
+          snapping={s.snapping}
+          showSafeZone={s.showSafeZone}
+          interactive={true}
         />
         <p className="text-xs text-muted-foreground mt-4">
-          Preview a {Math.round(scale * 100)}% · export a 1:1
+          Preview a {Math.round(scale * 100)}% · arrastrá los bloques para reubicarlos
         </p>
       </main>
     </div>
@@ -335,25 +305,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function SliderRow({
-  label,
-  value,
-  min,
-  max,
-  step,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  onChange: (v: number) => void;
-}) {
+  label, value, min, max, step, onChange,
+}: { label: string; value: number; min: number; max: number; step: number; onChange: (v: number) => void }) {
   return (
     <div>
       <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
-        <span>{label}</span>
-        <span>{value.toFixed(step < 1 ? 2 : 0)}</span>
+        <span>{label}</span><span>{value.toFixed(step < 1 ? 2 : 0)}</span>
       </div>
       <Slider value={[value]} min={min} max={max} step={step} onValueChange={(v) => onChange(v[0])} />
     </div>

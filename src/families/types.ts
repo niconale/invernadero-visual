@@ -17,21 +17,48 @@ export interface FieldDef {
   required?: boolean;
 }
 
+export type BlockKind = "text" | "vertical" | "date-box" | "cta";
+export type ColorRole = "family" | "white" | "cream";
+
+export interface BlockDef {
+  id: string;
+  label: string;
+  kind: BlockKind;
+  /** Position 0..100 (% of canvas) — anchor point depends on `align`. */
+  x: number;
+  y: number;
+  /** Max width for wrapping, in % of canvas. */
+  maxW?: number;
+  align: "left" | "center" | "right";
+  fontFamily: "bebas" | "dm";
+  fontSize: number; // px in canvas coords (1080x1350)
+  letterSpacing?: string;
+  lineHeight?: number;
+  weight?: number;
+  color: ColorRole;
+  /** For date-box / cta: background color role. */
+  background?: ColorRole;
+  uppercase?: boolean;
+  /** If true and the global quote-toggle is on, wrap text in 'single quotes'. */
+  quote?: boolean;
+  /** For date-box: subfont size for month label. */
+  monthScale?: number;
+  /** For vertical: side hint (visual only, position controlled by x/y). */
+  /** Field id this block binds to in `values`. Static label if missing. */
+  bind?: string;
+  /** Static text used when there's no bind (e.g. family label). */
+  staticText?: string;
+  /** Padding for box-style blocks (date-box, cta) in px. */
+  padding?: number;
+}
+
 export type PresetId = "A" | "B" | "C";
 
 export interface LayoutPreset {
   id: PresetId;
   label: string;
-  // Minimal token-only variations. Never changes structure, colors or typography.
-  tokens: {
-    // Programación
-    ctaAlign?: "center" | "left";
-    titleScale?: number; // multiplier on base title size, ~0.95..1.08
-    // Residencias
-    verticalSide?: "right" | "left";
-    verticalOpacity?: number; // 0.6..1
-    blockBottom?: number; // px from bottom of safe zone
-  };
+  /** Optional overrides for specific block positions by id. */
+  overrides?: Record<string, Partial<Pick<BlockDef, "x" | "y" | "align" | "fontSize">>>;
 }
 
 export interface TemplateDefinition {
@@ -40,15 +67,15 @@ export interface TemplateDefinition {
   description: string;
   fields: FieldDef[];
   presets: LayoutPreset[];
+  blocks: BlockDef[];
   requiresPhoto?: boolean;
   defaultValues?: FieldValues;
-  copyPromptHint?: string;
 }
 
 export interface FamilyDefinition {
   id: string;
   label: string;
-  color: string; // hex
+  color: string; // hex (family color)
   colorDark: string;
   textOnColor: string; // hex
   templates: TemplateDefinition[];
