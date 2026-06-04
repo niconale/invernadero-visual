@@ -69,7 +69,7 @@ export const useEditor = create<EditorState>()(
       clearImage: () => set((s) => ({ image: { ...defaultImage, url: null } })),
     }),
     {
-      name: "invernadero-editor-v1",
+      name: "invernadero-editor-v2",
       partialize: (s) => ({
         familyId: s.familyId,
         templateId: s.templateId,
