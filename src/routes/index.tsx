@@ -154,6 +154,23 @@ function EditorPage() {
                     placeholder={field.placeholder} maxLength={field.maxLength} className="mt-1"
                   />
                 )}
+                {field.options && field.options.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-1.5">
+                    {field.options.map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => s.setValue(field.id, opt)}
+                        className="text-[10px] px-2 py-0.5 rounded border"
+                        style={{
+                          borderColor: "rgba(0,0,0,0.15)",
+                          background: s.values[field.id] === opt ? fam.color : "transparent",
+                          color: s.values[field.id] === opt ? fam.textOnColor : "inherit",
+                        }}
+                      >{opt}</button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -164,7 +181,49 @@ function EditorPage() {
             </div>
             <Switch checked={s.useSingleQuotes} onCheckedChange={s.toggleQuotes} />
           </div>
+          {s.familyId === "programacion" && (
+            <div className="flex items-center justify-between mt-3 pt-3 border-t" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+              <div>
+                <Label className="text-xs">Unir hora + público</Label>
+                <p className="text-[10px] text-muted-foreground">Render: 21:00 H · PÚBLICO FAMILIAR</p>
+              </div>
+              <Switch checked={s.mergeHoraPublico} onCheckedChange={s.setMergeHoraPublico} />
+            </div>
+          )}
         </Section>
+
+        <Section title="Bloques">
+          <div className="space-y-3">
+            {tpl.blocks.map((b) => {
+              const key = `${s.familyId}.${s.templateId}.${b.id}`;
+              const hidden = !!s.hiddenBlocks[key];
+              const size = s.blockSizes[key] ?? 1;
+              const mergedHidden = s.familyId === "programacion" && s.mergeHoraPublico && b.id === "publico";
+              return (
+                <div key={b.id} className="rounded border p-2" style={{ borderColor: "rgba(0,0,0,0.08)", opacity: mergedHidden ? 0.5 : 1 }}>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs">{b.label}</Label>
+                    <Switch
+                      checked={!hidden && !mergedHidden}
+                      disabled={mergedHidden}
+                      onCheckedChange={(v) => s.setBlockHidden(b.id, !v)}
+                    />
+                  </div>
+                  {!hidden && !mergedHidden && (
+                    <div className="mt-2">
+                      <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                        <span>Tamaño</span><span>{Math.round(size * 100)}%</span>
+                      </div>
+                      <Slider value={[size]} min={0.5} max={1.8} step={0.05}
+                        onValueChange={(v) => s.setBlockSize(b.id, v[0])} />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
 
         <Section title="Imagen">
           <input type="file" accept="image/*" id="img-upload" className="hidden"
