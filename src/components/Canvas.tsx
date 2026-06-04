@@ -79,9 +79,8 @@ function ProgramacionRender({
   const PAD = 70;
   const DATE_SIZE = 168;
 
-  // Title sizing: title size shrinks if the right side (date box) would intersect.
-  // Base size ~178; scale down for long brand label (always "PROGRAMACIÓN" but allow override).
-  const baseTitle = 178 * titleScale;
+  // Title sizing: fit within left padding and the date-box column.
+  const baseTitle = 138 * titleScale;
   const titleSize = baseTitle;
 
   return (
