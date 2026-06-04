@@ -267,47 +267,30 @@ function ResidenciasRender({
   const PAD = 70;
   const VERTICAL_FONT = 200;
 
-  // Vertical text via rotate (more reliable than writing-mode for html-to-image).
-  // For right side: rotate -90deg, anchored to right edge.
-  // For left side: rotate 90deg, anchored to left edge.
-  const verticalStyle: React.CSSProperties = verticalSide === "right"
-    ? {
-        position: "absolute",
-        top: PAD,
-        right: PAD - 18,
-        transform: "rotate(-90deg)",
-        transformOrigin: "top right",
-        // After rotation: width becomes the canvas vertical run; height = font size box
-        width: dims.h - PAD * 2,
-        fontFamily: BEBAS,
-        color: PLUM,
-        fontSize: VERTICAL_FONT,
-        lineHeight: 1,
-        letterSpacing: "0.04em",
-        textTransform: "uppercase",
-        opacity: verticalOpacity,
-        textAlign: "left",
-        whiteSpace: "nowrap",
-        textShadow: "0 2px 18px rgba(0,0,0,0.35)",
-      }
-    : {
-        position: "absolute",
-        bottom: PAD,
-        left: PAD + VERTICAL_FONT,
-        transform: "rotate(-90deg)",
-        transformOrigin: "bottom left",
-        width: dims.h - PAD * 2,
-        fontFamily: BEBAS,
-        color: PLUM,
-        fontSize: VERTICAL_FONT,
-        lineHeight: 1,
-        letterSpacing: "0.04em",
-        textTransform: "uppercase",
-        opacity: verticalOpacity,
-        textAlign: "left",
-        whiteSpace: "nowrap",
-        textShadow: "0 2px 18px rgba(0,0,0,0.35)",
-      };
+  // Vertical text via writing-mode. Side controls anchor; rotate text 180° when
+  // reading from left to keep ascenders pointing outward.
+  const verticalStyle: React.CSSProperties = {
+    position: "absolute",
+    top: PAD,
+    bottom: PAD,
+    [verticalSide]: PAD - 10,
+    width: VERTICAL_FONT,
+    fontFamily: BEBAS,
+    color: PLUM,
+    fontSize: VERTICAL_FONT,
+    lineHeight: 0.9,
+    letterSpacing: "0.02em",
+    textTransform: "uppercase",
+    opacity: verticalOpacity,
+    whiteSpace: "nowrap",
+    writingMode: "vertical-rl",
+    transform: verticalSide === "left" ? "rotate(180deg)" : "none",
+    display: "flex",
+    alignItems: verticalSide === "right" ? "flex-start" : "flex-start",
+    justifyContent: "flex-start",
+    textShadow: "0 2px 18px rgba(0,0,0,0.35)",
+    overflow: "hidden",
+  };
 
   return (
     <>
