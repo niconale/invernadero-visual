@@ -1,7 +1,7 @@
 import { forwardRef, useRef, useCallback } from "react";
 import { FORMATS } from "@/families/types";
 import type { FamilyDefinition, TemplateDefinition, LayoutPreset, FieldValues, FormatId, BlockDef, ColorRole } from "@/families/types";
-import type { ImageState, MaskState, BlockPositions } from "@/store/editor";
+import type { ImageState, MaskState, BlockPositions, BlockBooleans, BlockSizes } from "@/store/editor";
 import { blockKey } from "@/store/editor";
 
 interface CanvasProps {
@@ -14,6 +14,9 @@ interface CanvasProps {
   mask: MaskState;
   scale: number;
   blockPositions: BlockPositions;
+  hiddenBlocks: BlockBooleans;
+  blockSizes: BlockSizes;
+  mergeHoraPublico: boolean;
   onBlockMove: (blockId: string, pos: { x: number; y: number }) => void;
   useSingleQuotes: boolean;
   snapping: boolean;
