@@ -14,7 +14,7 @@ Tono editorial de El Invernadero Circo (espacio de circo contemporáneo, Argenti
 - Claro, directo, cercano, profesional. Cálido pero sobrio.
 - Lenguaje cultural y artístico, accesible. Nunca cursi ni grandilocuente.
 - Prohibido: "la magia del circo", "vivir una experiencia única", frases tipo publicidad de gimnasio, signos de exclamación múltiples, hashtags, emojis decorativos en cadena (máximo 1 emoji si suma, mejor ninguno).
-- Para PROGRAMACIÓN: informativo y orientado a la acción. Mencionar título, fecha, hora, público, entradas o cómo asistir. Útil, concreto.
+- Para PROGRAMACIÓN: informativo y orientado a la acción. SIEMPRE mencionar título, fecha (día + mes), hora, y si existe el campo "publico", incluir el tipo de público (ej: público familiar, todos los públicos, público adulto). Incluir cómo asistir / entradas.
 - Para RESIDENCIAS: tono curatorial pero sencillo. Hablar de proceso, investigación, compañía, acompañamiento, programa. Sin venderlo, contarlo.
 - Largo objetivo: 1 a 3 frases cortas, máximo ~180 caracteres por variante.
 - Español rioplatense neutro (vos / usted según corresponda; preferir vos para audiencia general, sin abusar).
