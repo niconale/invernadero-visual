@@ -278,7 +278,8 @@ function BlockRender({
 
 export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
   { family, template, preset, format, values, image, mask, scale,
-    blockPositions, onBlockMove, useSingleQuotes, snapping, showSafeZone, interactive },
+    blockPositions, hiddenBlocks, blockSizes, mergeHoraPublico,
+    onBlockMove, useSingleQuotes, snapping, showSafeZone, interactive },
   ref,
 ) {
   const dims = FORMATS[format];
@@ -313,8 +314,27 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
         )}
 
         {template.blocks.map((b) => {
-          const blk = applyOverrides(b, preset);
+          let blk = applyOverrides(b, preset);
           const key = blockKey(family.id, template.id, blk.id);
+
+          // Programación: merge hora + público
+          if (family.id === "programacion" && mergeHoraPublico) {
+            if (blk.id === "publico") return null; // hide
+            if (blk.id === "hora") {
+              const hora = (values.hora || "").trim();
+              const pub = (values.publico || "").trim();
+              const merged = [hora, pub].filter(Boolean).join(" · ");
+              blk = { ...blk, bind: undefined, staticText: merged };
+            }
+          }
+
+          if (hiddenBlocks[key]) return null;
+
+          const sizeMult = blockSizes[key] ?? 1;
+          if (sizeMult !== 1) {
+            blk = { ...blk, fontSize: blk.fontSize * sizeMult };
+          }
+
           const custom = blockPositions[key];
           const pos = custom ?? { x: blk.x, y: blk.y };
           return (
