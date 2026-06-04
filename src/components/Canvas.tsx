@@ -265,7 +265,7 @@ function ResidenciasRender({
   const blockBottom = preset.tokens.blockBottom ?? 110;
 
   const PAD = 70;
-  const VERTICAL_FONT = 200;
+  const VERTICAL_FONT = 168;
 
   // Vertical text via writing-mode. Side controls anchor; rotate text 180° when
   // reading from left to keep ascenders pointing outward.
