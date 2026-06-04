@@ -10,8 +10,8 @@ interface CanvasProps {
   format: FormatId;
   values: FieldValues;
   image: ImageState;
-  textColor: "crema" | "blanco" | "negro"; // unused in Programación/Residencias (fixed by design)
-  useQuotes: boolean;
+  textColor?: "crema" | "blanco" | "negro";
+  useQuotes?: boolean;
   scale: number;
 }
 
