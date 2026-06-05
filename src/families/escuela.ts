@@ -38,7 +38,7 @@ const blocks: BlockDef[] = [
     kind: "panel",
     x: 0, y: 62, align: "left",
     fontFamily: "dm", fontSize: 0,
-    color: "white",
+    color: "white", background: "dark",
     panelW: 100, panelH: 38,
     bgOpacity: 0.82,
     borderTopColor: "family",
