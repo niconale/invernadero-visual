@@ -271,8 +271,8 @@ function BlockRender({
   }
 
   if (block.kind === "panel") {
-    const w = `${block.panelW ?? 100}%`;
-    const h = `${block.panelH ?? 35}%`;
+    const wPx = ((block.panelW ?? 100) / 100) * 1080;
+    const hPx = ((block.panelH ?? 35) / 100) * 1350;
     const op = block.bgOpacity ?? 0.85;
     const borderTop = block.borderTopColor
       ? `${block.borderTopWidth ?? 4}px solid ${roleToColor(block.borderTopColor, family)}`
