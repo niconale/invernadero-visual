@@ -280,8 +280,8 @@ function BlockRender({
     return (
       <div
         style={{
-          width: `calc(${w} * 10.8)`,
-          height: `calc(${h} * 13.5)`,
+          width: wPx,
+          height: hPx,
           background: bg ?? "#000",
           opacity: op,
           borderTop,
