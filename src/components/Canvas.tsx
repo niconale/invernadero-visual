@@ -39,6 +39,7 @@ function quoted(s: string, useSingle: boolean): string {
 function roleToColor(role: ColorRole, family: FamilyDefinition): string {
   if (role === "family") return family.color;
   if (role === "cream") return CREMA;
+  if (role === "dark") return family.colorDark;
   return "#FFFFFF";
 }
 
@@ -266,6 +267,45 @@ function BlockRender({
         }}
       >
         {text}
+      </div>
+    );
+  }
+
+  if (block.kind === "panel") {
+    const wPx = ((block.panelW ?? 100) / 100) * 1080;
+    const hPx = ((block.panelH ?? 35) / 100) * 1350;
+    const op = block.bgOpacity ?? 0.85;
+    const borderTop = block.borderTopColor
+      ? `${block.borderTopWidth ?? 4}px solid ${roleToColor(block.borderTopColor, family)}`
+      : undefined;
+    return (
+      <div
+        style={{
+          width: wPx,
+          height: hPx,
+          background: bg ?? "#000",
+          opacity: op,
+          borderTop,
+          pointerEvents: "none",
+        }}
+      />
+    );
+  }
+
+  if (block.kind === "data-stack") {
+    const main = blockText(block, values, useSingleQuotes);
+    const labelRaw = block.bindLabel ? (values[block.bindLabel] || "") : (block.staticLabel || "");
+    const label = (labelRaw || "").toUpperCase();
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: block.align === "right" ? "flex-end" : block.align === "center" ? "center" : "flex-start", textShadow: "0 2px 14px rgba(0,0,0,0.35)" }}>
+        <div style={{ ...base, textShadow: "0 2px 14px rgba(0,0,0,0.35)" }}>{main}</div>
+        {label && (
+          <div style={{
+            fontFamily: DM, color: roleToColor(block.color, family),
+            fontSize: block.labelSize ?? 18, letterSpacing: "0.18em",
+            fontWeight: 500, marginTop: 6, opacity: 0.85,
+          }}>{label}</div>
+        )}
       </div>
     );
   }
