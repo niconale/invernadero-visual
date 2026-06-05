@@ -18,7 +18,7 @@ export interface FieldDef {
 }
 
 export type BlockKind = "text" | "vertical" | "date-box" | "cta" | "panel" | "data-stack";
-export type ColorRole = "family" | "white" | "cream";
+export type ColorRole = "family" | "white" | "cream" | "dark";
 
 export interface BlockDef {
   id: string;
