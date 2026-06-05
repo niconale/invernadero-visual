@@ -270,6 +270,45 @@ function BlockRender({
     );
   }
 
+  if (block.kind === "panel") {
+    const w = `${block.panelW ?? 100}%`;
+    const h = `${block.panelH ?? 35}%`;
+    const op = block.bgOpacity ?? 0.85;
+    const borderTop = block.borderTopColor
+      ? `${block.borderTopWidth ?? 4}px solid ${roleToColor(block.borderTopColor, family)}`
+      : undefined;
+    return (
+      <div
+        style={{
+          width: `calc(${w} * 10.8)`,
+          height: `calc(${h} * 13.5)`,
+          background: bg ?? "#000",
+          opacity: op,
+          borderTop,
+          pointerEvents: "none",
+        }}
+      />
+    );
+  }
+
+  if (block.kind === "data-stack") {
+    const main = blockText(block, values, useSingleQuotes);
+    const labelRaw = block.bindLabel ? (values[block.bindLabel] || "") : (block.staticLabel || "");
+    const label = (labelRaw || "").toUpperCase();
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: block.align === "right" ? "flex-end" : block.align === "center" ? "center" : "flex-start", textShadow: "0 2px 14px rgba(0,0,0,0.35)" }}>
+        <div style={{ ...base, textShadow: "0 2px 14px rgba(0,0,0,0.35)" }}>{main}</div>
+        {label && (
+          <div style={{
+            fontFamily: DM, color: roleToColor(block.color, family),
+            fontSize: block.labelSize ?? 18, letterSpacing: "0.18em",
+            fontWeight: 500, marginTop: 6, opacity: 0.85,
+          }}>{label}</div>
+        )}
+      </div>
+    );
+  }
+
   // text
   const text = blockText(block, values, useSingleQuotes);
   if (!text) return null;
