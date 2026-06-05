@@ -50,6 +50,18 @@ export interface BlockDef {
   staticText?: string;
   /** Padding for box-style blocks (date-box, cta) in px. */
   padding?: number;
+  /** For panel: width/height in % of canvas. */
+  panelW?: number;
+  panelH?: number;
+  /** For panel: top border color role + thickness px. */
+  borderTopColor?: ColorRole;
+  borderTopWidth?: number;
+  /** For panel: background opacity 0..1 (multiplied with color). */
+  bgOpacity?: number;
+  /** For data-stack: secondary label text bound (e.g. "DÍAS"). */
+  bindLabel?: string;
+  staticLabel?: string;
+  labelSize?: number;
 }
 
 export type PresetId = "A" | "B" | "C";
