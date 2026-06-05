@@ -17,7 +17,7 @@ export interface FieldDef {
   required?: boolean;
 }
 
-export type BlockKind = "text" | "vertical" | "date-box" | "cta";
+export type BlockKind = "text" | "vertical" | "date-box" | "cta" | "panel" | "data-stack";
 export type ColorRole = "family" | "white" | "cream";
 
 export interface BlockDef {
