@@ -38,7 +38,7 @@ const blocks: BlockDef[] = [
     label: "Título de familia",
     kind: "text",
     staticText: "PROGRAMACIÓN",
-    x: 6.5, y: 4, align: "left", maxW: 60,
+    x: 6.5, y: 4, align: "left",
     fontFamily: "bebas", fontSize: 96, lineHeight: 0.88,
     color: "family", uppercase: true,
   },
