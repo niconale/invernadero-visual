@@ -1,8 +1,9 @@
 import { programacion } from "./programacion";
 import { residencias } from "./residencias";
+import { escuela } from "./escuela";
 import type { FamilyDefinition } from "./types";
 
-export const FAMILIES: FamilyDefinition[] = [programacion, residencias];
+export const FAMILIES: FamilyDefinition[] = [programacion, residencias, escuela];
 
 export function getFamily(id: string): FamilyDefinition {
   const f = FAMILIES.find((x) => x.id === id);
