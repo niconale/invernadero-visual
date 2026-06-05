@@ -39,6 +39,7 @@ function quoted(s: string, useSingle: boolean): string {
 function roleToColor(role: ColorRole, family: FamilyDefinition): string {
   if (role === "family") return family.color;
   if (role === "cream") return CREMA;
+  if (role === "dark") return family.colorDark;
   return "#FFFFFF";
 }
 
