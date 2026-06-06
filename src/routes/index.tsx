@@ -210,12 +210,39 @@ function EditorPage() {
                     />
                   </div>
                   {!hidden && !mergedHidden && (
-                    <div className="mt-2">
-                      <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                        <span>Tamaño</span><span>{Math.round(size * 100)}%</span>
+                    <div className="mt-2 space-y-2">
+                      <div>
+                        <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                          <span>Tamaño</span><span>{Math.round(size * 100)}%</span>
+                        </div>
+                        <Slider value={[size]} min={0.5} max={1.8} step={0.05}
+                          onValueChange={(v) => s.setBlockSize(b.id, v[0])} />
                       </div>
-                      <Slider value={[size]} min={0.5} max={1.8} step={0.05}
-                        onValueChange={(v) => s.setBlockSize(b.id, v[0])} />
+                      {b.wrapControl && (() => {
+                        const nw = s.blockNoWrap[key];
+                        const effective = nw !== undefined ? nw : !!b.defaultNoWrap;
+                        return (
+                          <div>
+                            <Label className="text-[10px] text-muted-foreground">Salto de línea</Label>
+                            <div className="flex gap-1 mt-1">
+                              <button type="button" onClick={() => s.setBlockNoWrap(b.id, true)}
+                                className="flex-1 text-[10px] px-2 py-1 rounded border"
+                                style={{
+                                  background: effective ? fam.color : "transparent",
+                                  color: effective ? fam.textOnColor : "inherit",
+                                  borderColor: effective ? fam.color : "rgba(0,0,0,0.15)",
+                                }}>Una línea</button>
+                              <button type="button" onClick={() => s.setBlockNoWrap(b.id, false)}
+                                className="flex-1 text-[10px] px-2 py-1 rounded border"
+                                style={{
+                                  background: !effective ? fam.color : "transparent",
+                                  color: !effective ? fam.textOnColor : "inherit",
+                                  borderColor: !effective ? fam.color : "rgba(0,0,0,0.15)",
+                                }}>Multilínea</button>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
