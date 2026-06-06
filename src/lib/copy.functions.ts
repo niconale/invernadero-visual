@@ -204,18 +204,36 @@ export const generateCopy = createServerFn({ method: "POST" })
       });
 
       const refsBlock = (data.referencias || "").trim()
-        ? `\nEjemplos REALES de captions de su Instagram (referencia de tono/ritmo/vocabulario — NO copiar):\n"""\n${data.referencias!.trim().slice(0, 3000)}\n"""\n`
+        ? `\nEjemplos REALES de captions de su Instagram (referencia de tono/ritmo/vocabulario — NO copiar literal):\n"""\n${data.referencias!.trim().slice(0, 3000)}\n"""\n`
+        : "";
+
+      const contextoBlock = (data.contexto || "").trim()
+        ? `\nCONTEXTO COMPLEMENTARIO (sinopsis oficial, descripción de la compañía, notas internas, qué destacar/evitar, links, nivel, etc.). Usalo como APOYO para enriquecer el copy — pero NO contradice los datos de la plantilla, NO inventa datos nuevos (fechas, horas, precios, públicos, programas) y NO se cita literal salvo frases muy breves de la propia compañía:\n"""\n${data.contexto!.trim().slice(0, 4000)}\n"""\n`
         : "";
 
       const prompt = `${BRAND_VOICE}
 
 ${familyBlock(data.familia)}
-${refsBlock}
+${refsBlock}${contextoBlock}
 Plantilla: ${data.plantilla}
-Datos del posteo (las mayúsculas son sólo del arte, normalizá al escribir): ${JSON.stringify(data.valores)}
+DATOS PRINCIPALES de la plantilla (fuente de verdad, las mayúsculas son sólo del arte — normalizá al escribir): ${JSON.stringify(data.valores)}
+
+PRIORIDAD DE FUENTES (estricta, en este orden):
+1) DATOS PRINCIPALES de la plantilla (arriba). Son obligatorios y mandan sobre todo lo demás.
+2) CONTEXTO COMPLEMENTARIO (si existe). Solo enriquece (sinopsis, qué destacar, tono, links). Si contradice a los datos de la plantilla, GANAN los datos de la plantilla.
+3) Guía de tono de El Invernadero.
+4) Plantillas internas.
+
+FIDELIDAD (reglas duras):
+- No inventes fechas, horarios, precios, públicos, compañías, profesores, niveles, programas, fases ni links que no estén en datos de plantilla o en contexto complementario.
+- Si un campo de la plantilla está vacío, NO lo menciones (no rellenes con genéricos).
+- No embellezcas en exceso. No prometas nada que no esté en la sinopsis.
+- No conviertas una sinopsis curatorial en publicidad genérica.
+- Respetá la descripción de la compañía: no cambies su sentido.
+- Si el contexto complementario incluye un link/canal de reserva, podés mencionarlo tal cual en el CTA.
 
 FORMATO DE SALIDA (obligatorio):
-- principal: copy principal entre 500 y 900 caracteres. Priorizar datos reales. No genérico. No inventar.
+- principal: copy principal entre 500 y 900 caracteres. Apoyado en datos reales + sinopsis si existe. No genérico.
 - corta: versión corta entre 180 y 300 caracteres (recordatorio o reel).
 - cta: una sola línea, directa.
 - hashtags: EXACTAMENTE 5, los indicados para esta familia (en ese orden). Nada dentro del cuerpo.
