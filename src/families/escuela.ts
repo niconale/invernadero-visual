@@ -1,4 +1,5 @@
 import type { FamilyDefinition, LayoutPreset, FieldValues, BlockDef } from "./types";
+import invernaderoLogo from "@/assets/invernadero-logo.png.asset.json";
 
 const PRESETS: LayoutPreset[] = [
   { id: "A", label: "Estándar" },
