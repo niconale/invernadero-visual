@@ -143,6 +143,7 @@ export const useEditor = create<EditorState>()(
           blockPositions: filt(s.blockPositions),
           hiddenBlocks: filt(s.hiddenBlocks),
           blockSizes: filt(s.blockSizes),
+          blockNoWrap: filt(s.blockNoWrap),
         };
       }),
       toggleQuotes: () => set((s) => ({ useSingleQuotes: !s.useSingleQuotes })),
