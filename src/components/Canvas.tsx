@@ -16,6 +16,7 @@ interface CanvasProps {
   blockPositions: BlockPositions;
   hiddenBlocks: BlockBooleans;
   blockSizes: BlockSizes;
+  blockNoWrap: BlockBooleans;
   mergeHoraPublico: boolean;
   onBlockMove: (blockId: string, pos: { x: number; y: number }) => void;
   useSingleQuotes: boolean;
