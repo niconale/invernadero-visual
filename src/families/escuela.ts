@@ -179,7 +179,7 @@ export const escuela: FamilyDefinition = {
           color: "white", background: "dark",
           panelW: 42, panelH: 100,
           bgOpacity: 0.88,
-          storyOverrides: { x: 55, panelW: 45, bgOpacity: 0.82 },
+          storyOverrides: { x: 55, panelW: 45, bgOpacity: 0.85 },
         },
         // Línea vertical azul divisoria (fina)
         {
@@ -191,7 +191,7 @@ export const escuela: FamilyDefinition = {
           color: "white", background: "family",
           panelW: 0.7, panelH: 100,
           bgOpacity: 1,
-          storyOverrides: { x: 54.4, y: 7.5, panelW: 0.6, panelH: 85 },
+          storyOverrides: { x: 54.4, y: 7, panelW: 0.6, panelH: 86 },
         },
         // Pastilla azul superior dentro del panel derecho (acento de familia)
         {
@@ -202,7 +202,7 @@ export const escuela: FamilyDefinition = {
           x: 61, y: 5, align: "left",
           fontFamily: "dm", fontSize: 24, letterSpacing: "0.18em", weight: 700,
           color: "white", background: "family", uppercase: true, padding: 14,
-          storyOverrides: { x: 58, y: 6, fontSize: 28, padding: 16 },
+          storyOverrides: { x: 57.5, y: 5, fontSize: 26, padding: 14 },
         },
         // Título principal (dentro del panel derecho)
         {
@@ -214,7 +214,7 @@ export const escuela: FamilyDefinition = {
           fontFamily: "bebas", fontSize: 110, lineHeight: 0.9, letterSpacing: "-0.01em",
           color: "white", uppercase: true,
           wrapControl: true, defaultNoWrap: false,
-          storyOverrides: { x: 58, y: 14, maxW: 40, fontSize: 140 },
+          storyOverrides: { x: 57.5, y: 11, maxW: 38, fontSize: 120 },
         },
         // Subtítulo: texto libre, multilínea, sin uppercase forzado
         {
@@ -225,7 +225,7 @@ export const escuela: FamilyDefinition = {
           x: 61, y: 56, align: "left", maxW: 36,
           fontFamily: "dm", fontSize: 24, lineHeight: 1.35, letterSpacing: "0.02em", weight: 500,
           color: "cream",
-          storyOverrides: { x: 58, y: 33, maxW: 40, fontSize: 30 },
+          storyOverrides: { x: 57.5, y: 26, maxW: 38, fontSize: 28 },
         },
         // Datos prácticos en la parte baja del panel derecho
         {
@@ -236,7 +236,7 @@ export const escuela: FamilyDefinition = {
           x: 61, y: 74, align: "left", maxW: 36,
           fontFamily: "bebas", fontSize: 40, lineHeight: 1, letterSpacing: "0.02em",
           color: "white", uppercase: true,
-          storyOverrides: { x: 58, y: 56, maxW: 40, fontSize: 56 },
+          storyOverrides: { x: 57.5, y: 46, maxW: 38, fontSize: 52 },
         },
         {
           id: "nivel",
@@ -246,7 +246,7 @@ export const escuela: FamilyDefinition = {
           x: 61, y: 80, align: "left", maxW: 36,
           fontFamily: "dm", fontSize: 20, letterSpacing: "0.12em", weight: 600,
           color: "cream", uppercase: true,
-          storyOverrides: { x: 58, y: 63, maxW: 40, fontSize: 24 },
+          storyOverrides: { x: 57.5, y: 60, maxW: 38, fontSize: 22 },
         },
         {
           id: "horario",
@@ -256,7 +256,7 @@ export const escuela: FamilyDefinition = {
           x: 61, y: 85, align: "left", maxW: 36,
           fontFamily: "bebas", fontSize: 36, lineHeight: 1,
           color: "white", uppercase: true,
-          storyOverrides: { x: 58, y: 68, maxW: 40, fontSize: 48 },
+          storyOverrides: { x: 57.5, y: 53, maxW: 38, fontSize: 44 },
         },
         {
           id: "precio",
@@ -266,7 +266,7 @@ export const escuela: FamilyDefinition = {
           x: 61, y: 90, align: "left", maxW: 36,
           fontFamily: "bebas", fontSize: 44, lineHeight: 1,
           color: "family", uppercase: true,
-          storyOverrides: { x: 58, y: 76, maxW: 40, fontSize: 60 },
+          storyOverrides: { x: 57.5, y: 66, maxW: 38, fontSize: 56 },
         },
         // CTA
         {
@@ -277,7 +277,7 @@ export const escuela: FamilyDefinition = {
           x: 61, y: 95, align: "left",
           fontFamily: "dm", fontSize: 18, letterSpacing: "0.16em", weight: 600,
           color: "white", background: "family", uppercase: true, padding: 10,
-          storyOverrides: { x: 58, y: 87, fontSize: 22, padding: 14 },
+          storyOverrides: { x: 57.5, y: 78, fontSize: 20, padding: 12 },
         },
         // Logo El Invernadero (opcional) — margen inferior derecho del panel verde
         {
@@ -290,8 +290,9 @@ export const escuela: FamilyDefinition = {
           imageUrl: invernaderoLogo.url,
           logoWidth: 160,
           logoWhite: true,
-          storyOverrides: { x: 96, y: 93, logoWidth: 200 },
+          storyOverrides: { x: 96, y: 88, logoWidth: 180 },
         },
+
 
       ],
       fields: [
