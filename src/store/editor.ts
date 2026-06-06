@@ -165,6 +165,7 @@ export const useEditor = create<EditorState>()(
         blockPositions: s.blockPositions,
         hiddenBlocks: s.hiddenBlocks,
         blockSizes: s.blockSizes,
+        blockNoWrap: s.blockNoWrap,
         mergeHoraPublico: s.mergeHoraPublico,
         useSingleQuotes: s.useSingleQuotes,
         snapping: s.snapping,
