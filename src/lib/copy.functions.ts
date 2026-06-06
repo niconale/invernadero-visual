@@ -6,6 +6,7 @@ const inputSchema = z.object({
   plantilla: z.string(),
   valores: z.record(z.string(), z.string()),
   referencias: z.string().optional(),
+  contexto: z.string().optional(),
 });
 
 export type CopyResult = {
