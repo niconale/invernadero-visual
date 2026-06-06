@@ -169,7 +169,7 @@ export const escuela: FamilyDefinition = {
         { id: "C", label: "Título compacto", overrides: { titulo: { fontSize: 100 } } },
       ],
       blocks: [
-        // Panel derecho verde oscuro (~42% ancho)
+        // Panel derecho verde oscuro (~42% ancho), ligeramente translúcido
         {
           id: "panelDerecho",
           label: "Panel derecho",
@@ -178,7 +178,7 @@ export const escuela: FamilyDefinition = {
           fontFamily: "dm", fontSize: 0,
           color: "white", background: "dark",
           panelW: 42, panelH: 100,
-          bgOpacity: 1,
+          bgOpacity: 0.88,
         },
         // Línea vertical azul divisoria (fina)
         {
@@ -196,7 +196,7 @@ export const escuela: FamilyDefinition = {
           id: "etiqueta",
           label: "Pastilla superior (familia)",
           kind: "cta",
-          bind: "etiqueta",
+          bind: "etiquetaForm",
           x: 61, y: 5, align: "left",
           fontFamily: "dm", fontSize: 24, letterSpacing: "0.18em", weight: 700,
           color: "white", background: "family", uppercase: true, padding: 14,
@@ -212,15 +212,15 @@ export const escuela: FamilyDefinition = {
           color: "white", uppercase: true,
           wrapControl: true, defaultNoWrap: false,
         },
-        // Subtítulo
+        // Subtítulo: texto libre, multilínea, sin uppercase forzado
         {
           id: "subtitulo",
           label: "Subtítulo",
           kind: "text",
           bind: "subtitulo",
           x: 61, y: 56, align: "left", maxW: 36,
-          fontFamily: "dm", fontSize: 24, letterSpacing: "0.14em", weight: 600,
-          color: "cream", uppercase: true,
+          fontFamily: "dm", fontSize: 24, lineHeight: 1.35, letterSpacing: "0.02em", weight: 500,
+          color: "cream",
         },
         // Datos prácticos en la parte baja del panel derecho
         {
