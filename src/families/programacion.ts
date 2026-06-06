@@ -41,6 +41,7 @@ const blocks: BlockDef[] = [
     x: 6.5, y: 4, align: "left",
     fontFamily: "bebas", fontSize: 96, lineHeight: 0.88,
     color: "family", uppercase: true,
+    wrapControl: true, defaultNoWrap: true,
   },
   {
     id: "dateBox",
