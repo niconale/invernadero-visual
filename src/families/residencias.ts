@@ -56,6 +56,7 @@ const blocks: BlockDef[] = [
     x: 6.5, y: 80, align: "left", maxW: 70,
     fontFamily: "bebas", fontSize: 64, lineHeight: 0.95,
     color: "white", uppercase: true, quote: true,
+    wrapControl: true, defaultNoWrap: false,
   },
   {
     id: "programa",
