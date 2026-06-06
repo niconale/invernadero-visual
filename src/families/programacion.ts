@@ -60,6 +60,7 @@ const blocks: BlockDef[] = [
     x: 50, y: 70, align: "center", maxW: 88,
     fontFamily: "bebas", fontSize: 76, lineHeight: 0.95,
     color: "white", uppercase: true, quote: true,
+    wrapControl: true, defaultNoWrap: false,
   },
   {
     id: "hora",
