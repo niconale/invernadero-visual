@@ -100,6 +100,7 @@ export const useEditor = create<EditorState>()(
       blockPositions: {},
       hiddenBlocks: {},
       blockSizes: {},
+      blockNoWrap: {},
       mergeHoraPublico: false,
       useSingleQuotes: true,
       snapping: false,
