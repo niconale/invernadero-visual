@@ -73,6 +73,7 @@ const blocks: BlockDef[] = [
     x: 6, y: 67, align: "left", maxW: 90,
     fontFamily: "bebas", fontSize: 128, lineHeight: 0.92, letterSpacing: "-0.01em",
     color: "white", uppercase: true,
+    wrapControl: true, defaultNoWrap: true,
   },
   // Subtitle
   {

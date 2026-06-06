@@ -41,6 +41,7 @@ const blocks: BlockDef[] = [
     x: 6.5, y: 4, align: "left",
     fontFamily: "bebas", fontSize: 96, lineHeight: 0.88,
     color: "family", uppercase: true,
+    wrapControl: true, defaultNoWrap: true,
   },
   {
     id: "dateBox",
@@ -59,6 +60,7 @@ const blocks: BlockDef[] = [
     x: 50, y: 70, align: "center", maxW: 88,
     fontFamily: "bebas", fontSize: 76, lineHeight: 0.95,
     color: "white", uppercase: true, quote: true,
+    wrapControl: true, defaultNoWrap: false,
   },
   {
     id: "hora",

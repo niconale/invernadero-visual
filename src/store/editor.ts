@@ -39,6 +39,7 @@ export interface EditorState {
   blockPositions: BlockPositions;
   hiddenBlocks: BlockBooleans;
   blockSizes: BlockSizes;
+  blockNoWrap: BlockBooleans;
   mergeHoraPublico: boolean;
   useSingleQuotes: boolean;
   snapping: boolean;
@@ -56,6 +57,7 @@ export interface EditorState {
   setBlockPos: (blockId: string, pos: BlockPos) => void;
   setBlockHidden: (blockId: string, hidden: boolean) => void;
   setBlockSize: (blockId: string, mult: number) => void;
+  setBlockNoWrap: (blockId: string, noWrap: boolean) => void;
   setMergeHoraPublico: (v: boolean) => void;
   resetBlocks: () => void;
   toggleQuotes: () => void;
@@ -98,6 +100,7 @@ export const useEditor = create<EditorState>()(
       blockPositions: {},
       hiddenBlocks: {},
       blockSizes: {},
+      blockNoWrap: {},
       mergeHoraPublico: false,
       useSingleQuotes: true,
       snapping: false,
@@ -125,6 +128,9 @@ export const useEditor = create<EditorState>()(
       setBlockSize: (blockId, mult) => set((s) => ({
         blockSizes: { ...s.blockSizes, [blockKey(s.familyId, s.templateId, blockId)]: mult },
       })),
+      setBlockNoWrap: (blockId, noWrap) => set((s) => ({
+        blockNoWrap: { ...s.blockNoWrap, [blockKey(s.familyId, s.templateId, blockId)]: noWrap },
+      })),
       setMergeHoraPublico: (v) => set({ mergeHoraPublico: v }),
       resetBlocks: () => set((s) => {
         const prefix = `${s.familyId}.${s.templateId}.`;
@@ -137,6 +143,7 @@ export const useEditor = create<EditorState>()(
           blockPositions: filt(s.blockPositions),
           hiddenBlocks: filt(s.hiddenBlocks),
           blockSizes: filt(s.blockSizes),
+          blockNoWrap: filt(s.blockNoWrap),
         };
       }),
       toggleQuotes: () => set((s) => ({ useSingleQuotes: !s.useSingleQuotes })),
@@ -158,6 +165,7 @@ export const useEditor = create<EditorState>()(
         blockPositions: s.blockPositions,
         hiddenBlocks: s.hiddenBlocks,
         blockSizes: s.blockSizes,
+        blockNoWrap: s.blockNoWrap,
         mergeHoraPublico: s.mergeHoraPublico,
         useSingleQuotes: s.useSingleQuotes,
         snapping: s.snapping,

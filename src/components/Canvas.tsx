@@ -16,6 +16,7 @@ interface CanvasProps {
   blockPositions: BlockPositions;
   hiddenBlocks: BlockBooleans;
   blockSizes: BlockSizes;
+  blockNoWrap: BlockBooleans;
   mergeHoraPublico: boolean;
   onBlockMove: (blockId: string, pos: { x: number; y: number }) => void;
   useSingleQuotes: boolean;
@@ -65,37 +66,40 @@ function MaskLayer({ mask, image }: { mask: MaskState; image: ImageState }) {
   const reach = 0.15 + (mask.size / 100) * 0.55; // 0.15..0.7
   // Feather: how soft the inner edge is. Higher = softer.
   const f = 0.3 + (mask.feather / 100) * 0.7; // 0.3..1.0
-  // Each side intensity (0..1)
-  const sides: Array<[string, number, string]> = [
-    ["180deg", mask.top / 100, "top"],
-    ["0deg", mask.bottom / 100, "bottom"],
-    ["90deg", mask.left / 100, "left"],
-    ["270deg", mask.right / 100, "right"],
+  // Each side intensity (0..1). Top gets a small extra ceiling for legibility.
+  const topIntensity = Math.min(1, (mask.top / 100) * 1.15);
+  const sides: Array<[string, number, string, number]> = [
+    // [angle, intensity, key, reach]
+    ["180deg", topIntensity, "top", Math.min(0.95, reach + 0.25)],
+    ["0deg", mask.bottom / 100, "bottom", reach],
+    ["90deg", mask.left / 100, "left", reach],
+    ["270deg", mask.right / 100, "right", reach],
   ];
-  const stopEnd = `${(reach * 100).toFixed(1)}%`;
-  const stopMid = `${(reach * 100 * (1 - f * 0.6)).toFixed(1)}%`;
   return (
     <>
       {/* Flat overlay */}
       {overlay > 0 && (
         <div aria-hidden style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${overlay})` }} />
       )}
-      {sides.map(([angle, intensity, key]) =>
-        intensity <= 0 ? null : (
+      {sides.map(([angle, intensity, key, sideReach]) => {
+        if ((intensity as number) <= 0) return null;
+        const stopEnd = `${((sideReach as number) * 100).toFixed(1)}%`;
+        const stopMid = `${((sideReach as number) * 100 * (1 - f * 0.6)).toFixed(1)}%`;
+        return (
           <div
-            key={key}
+            key={key as string}
             aria-hidden
             style={{
               position: "absolute", inset: 0,
               background: `linear-gradient(${angle},
-                rgba(0,0,0,${(intensity * 0.95).toFixed(3)}) 0%,
-                rgba(0,0,0,${(intensity * 0.6).toFixed(3)}) ${stopMid},
+                rgba(0,0,0,${((intensity as number) * 0.95).toFixed(3)}) 0%,
+                rgba(0,0,0,${((intensity as number) * 0.6).toFixed(3)}) ${stopMid},
                 rgba(0,0,0,0) ${stopEnd})`,
               mixBlendMode: "multiply",
             }}
           />
-        ),
-      )}
+        );
+      })}
       {mask.vignette > 0 && (
         <div
           aria-hidden
@@ -202,6 +206,7 @@ function BlockRender({
   const bg = block.background ? roleToColor(block.background, family) : undefined;
   const fontFamily = block.fontFamily === "dm" ? DM : BEBAS;
   const isFamilyTitle = block.id === "titleFamily";
+  const nowrap = !!block.noWrap;
   const base: React.CSSProperties = {
     fontFamily,
     color,
@@ -211,10 +216,10 @@ function BlockRender({
     fontWeight: block.weight as any,
     textTransform: block.uppercase ? "uppercase" : "none",
     textShadow: bg ? "none" : "0 2px 14px rgba(0,0,0,0.35)",
-    whiteSpace: isFamilyTitle ? "nowrap" : "pre-wrap",
-    wordBreak: isFamilyTitle ? "normal" : "break-word",
+    whiteSpace: nowrap || isFamilyTitle ? "nowrap" : "pre-wrap",
+    wordBreak: nowrap || isFamilyTitle ? "normal" : "break-word",
     overflow: "visible",
-    maxWidth: isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * 1080}px` : undefined),
+    maxWidth: nowrap || isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * 1080}px` : undefined),
     textAlign: block.align as any,
   };
 
@@ -320,7 +325,7 @@ function BlockRender({
 
 export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
   { family, template, preset, format, values, image, mask, scale,
-    blockPositions, hiddenBlocks, blockSizes, mergeHoraPublico,
+    blockPositions, hiddenBlocks, blockSizes, blockNoWrap, mergeHoraPublico,
     onBlockMove, useSingleQuotes, snapping, showSafeZone, interactive },
   ref,
 ) {
@@ -375,6 +380,10 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
           const sizeMult = blockSizes[key] ?? 1;
           if (sizeMult !== 1) {
             blk = { ...blk, fontSize: blk.fontSize * sizeMult };
+          }
+          if (blk.wrapControl) {
+            const nw = blockNoWrap[key];
+            blk = { ...blk, noWrap: nw !== undefined ? nw : !!blk.defaultNoWrap };
           }
 
           const custom = blockPositions[key];
