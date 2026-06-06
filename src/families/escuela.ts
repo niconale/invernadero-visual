@@ -280,17 +280,18 @@ export const escuela: FamilyDefinition = {
           storyOverrides: { x: 57.5, y: 78, fontSize: 20, padding: 12 },
         },
         // Logo El Invernadero (opcional) — margen inferior derecho del panel verde
+        // align "left" → la X del slider corresponde al borde izquierdo de la imagen (estable, no deforma).
         {
           id: "logoInvernadero",
           label: "Logo El Invernadero",
           kind: "logo",
-          x: 96, y: 96, align: "right",
+          x: 81, y: 90, align: "left",
           fontFamily: "dm", fontSize: 0,
           color: "white",
           imageUrl: invernaderoLogo.url,
           logoWidth: 160,
           logoWhite: true,
-          storyOverrides: { x: 96, y: 88, logoWidth: 180 },
+          storyOverrides: { x: 79, y: 90, logoWidth: 180 },
         },
 
 
