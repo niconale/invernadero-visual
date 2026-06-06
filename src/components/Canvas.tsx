@@ -428,7 +428,7 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
               snapping={snapping}
               interactive={interactive}
             >
-              <BlockRender block={blk} family={family} values={values} useSingleQuotes={useSingleQuotes} />
+              <BlockRender block={blk} family={family} values={values} useSingleQuotes={useSingleQuotes} canvasW={dims.w} canvasH={dims.h} />
             </Draggable>
           );
         })}
