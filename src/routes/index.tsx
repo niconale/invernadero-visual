@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { FAMILIES } from "@/families";
 import { FORMATS } from "@/families/types";
-import { useEditor, useCurrentTemplate } from "@/store/editor";
+import { useEditor, useCurrentTemplate, posKey } from "@/store/editor";
 import { Canvas } from "@/components/Canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
