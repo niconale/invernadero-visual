@@ -413,7 +413,8 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
             blk = { ...blk, noWrap: nw !== undefined ? nw : !!blk.defaultNoWrap };
           }
 
-          const custom = blockPositions[key];
+          const pkey = posKey(family.id, template.id, blk.id, format);
+          const custom = blockPositions[pkey] ?? blockPositions[key];
           const pos = custom ?? { x: blk.x, y: blk.y };
           return (
             <Draggable
