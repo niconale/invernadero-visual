@@ -300,13 +300,20 @@ function EditorPage() {
             {busy ? <Loader2 className="w-3 h-3 mr-1 animate-spin" /> : <Sparkles className="w-3 h-3 mr-1" />}
             Generar copy
           </Button>
-          {copies.length > 0 && (
+          {copy && (
             <div className="space-y-2 mt-3">
-              {copies.map((c, i) => (
-                <div key={i} className="text-xs p-2 rounded border bg-white" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
-                  <p>{c}</p>
+              {([
+                { label: "Copy principal", value: copy.principal },
+                { label: "Versión corta", value: copy.corta },
+                { label: "CTA", value: copy.cta },
+                { label: "Hashtags", value: copy.hashtags.join(" ") },
+                { label: "Stories", value: copy.stories.map((st, i) => `${i + 1}. ${st}`).join("\n") },
+              ]).map((block) => (
+                <div key={block.label} className="text-xs p-2 rounded border bg-white" style={{ borderColor: "rgba(0,0,0,0.1)" }}>
+                  <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">{block.label}</div>
+                  <p className="whitespace-pre-wrap">{block.value}</p>
                   <button className="text-[10px] mt-1 underline text-muted-foreground"
-                    onClick={() => { navigator.clipboard.writeText(c); toast.success("Copiado"); }}>
+                    onClick={() => { navigator.clipboard.writeText(block.value); toast.success("Copiado"); }}>
                     copiar
                   </button>
                 </div>
