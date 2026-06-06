@@ -402,7 +402,11 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
 
           const sizeMult = blockSizes[key] ?? 1;
           if (sizeMult !== 1) {
-            blk = { ...blk, fontSize: blk.fontSize * sizeMult };
+            blk = {
+              ...blk,
+              fontSize: blk.fontSize * sizeMult,
+              logoWidth: blk.logoWidth ? blk.logoWidth * sizeMult : blk.logoWidth,
+            };
           }
           if (blk.wrapControl) {
             const nw = blockNoWrap[key];
