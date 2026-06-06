@@ -200,8 +200,8 @@ function Draggable({ block, effectivePos, onMove, scale, canvasW, canvasH, snapp
 }
 
 function BlockRender({
-  block, family, values, useSingleQuotes,
-}: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean }) {
+  block, family, values, useSingleQuotes, canvasW, canvasH,
+}: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean; canvasW: number; canvasH: number }) {
   const color = roleToColor(block.color, family);
   const bg = block.background ? roleToColor(block.background, family) : undefined;
   const fontFamily = block.fontFamily === "dm" ? DM : BEBAS;
@@ -219,7 +219,7 @@ function BlockRender({
     whiteSpace: nowrap || isFamilyTitle ? "nowrap" : "pre-wrap",
     wordBreak: nowrap || isFamilyTitle ? "normal" : "break-word",
     overflow: "visible",
-    maxWidth: nowrap || isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * 1080}px` : undefined),
+    maxWidth: nowrap || isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * canvasW}px` : undefined),
     textAlign: block.align as any,
   };
 
@@ -277,8 +277,8 @@ function BlockRender({
   }
 
   if (block.kind === "panel") {
-    const wPx = ((block.panelW ?? 100) / 100) * 1080;
-    const hPx = ((block.panelH ?? 35) / 100) * 1350;
+    const wPx = ((block.panelW ?? 100) / 100) * canvasW;
+    const hPx = ((block.panelH ?? 35) / 100) * canvasH;
     const op = block.bgOpacity ?? 0.85;
     const borderTop = block.borderTopColor
       ? `${block.borderTopWidth ?? 4}px solid ${roleToColor(block.borderTopColor, family)}`
@@ -428,7 +428,7 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
               snapping={snapping}
               interactive={interactive}
             >
-              <BlockRender block={blk} family={family} values={values} useSingleQuotes={useSingleQuotes} />
+              <BlockRender block={blk} family={family} values={values} useSingleQuotes={useSingleQuotes} canvasW={dims.w} canvasH={dims.h} />
             </Draggable>
           );
         })}
