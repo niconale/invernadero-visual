@@ -276,7 +276,7 @@ function EditorPage() {
 
         <Section title="Máscaras graduadas">
           <div className="space-y-3">
-            <SliderRow label="Máscara superior" value={s.mask.top} min={0} max={100} step={1} onChange={(v) => s.setMask({ top: v })} />
+            <SliderRow label="Máscara superior" value={s.mask.top} min={0} max={130} step={1} onChange={(v) => s.setMask({ top: v })} />
             <SliderRow label="Máscara inferior" value={s.mask.bottom} min={0} max={100} step={1} onChange={(v) => s.setMask({ bottom: v })} />
             <SliderRow label="Máscara izquierda" value={s.mask.left} min={0} max={100} step={1} onChange={(v) => s.setMask({ left: v })} />
             <SliderRow label="Máscara derecha" value={s.mask.right} min={0} max={100} step={1} onChange={(v) => s.setMask({ right: v })} />
