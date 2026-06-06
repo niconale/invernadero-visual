@@ -62,6 +62,12 @@ export interface BlockDef {
   bindLabel?: string;
   staticLabel?: string;
   labelSize?: number;
+  /** If true, render with white-space: nowrap (default false unless overridden by store). */
+  noWrap?: boolean;
+  /** Default value for the per-block "Salto de línea" control. */
+  defaultNoWrap?: boolean;
+  /** If true, the UI shows the "Salto de línea" (1 línea / multilínea) selector for this block. */
+  wrapControl?: boolean;
 }
 
 export type PresetId = "A" | "B" | "C";
