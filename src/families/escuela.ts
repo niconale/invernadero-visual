@@ -154,7 +154,7 @@ export const escuela: FamilyDefinition = {
       description: "Intensivos, masterclasses, talleres y cursos puntuales.",
       requiresPhoto: true,
       defaultValues: {
-        etiqueta: "ESCUELA · FORMACIÓN",
+        etiquetaForm: "ESCUELA · FORMACIÓN",
         titulo: "CUADRO\nRUSO",
         subtitulo: "DUO STERGY",
         fecha: "25 Y 26 MAYO",
