@@ -356,6 +356,7 @@ function EditorPage() {
           blockPositions={s.blockPositions}
           hiddenBlocks={s.hiddenBlocks}
           blockSizes={s.blockSizes}
+          blockNoWrap={s.blockNoWrap}
           mergeHoraPublico={s.mergeHoraPublico}
           onBlockMove={s.setBlockPos}
           useSingleQuotes={s.useSingleQuotes}
