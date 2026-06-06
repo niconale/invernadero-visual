@@ -2,7 +2,7 @@ import { forwardRef, useRef, useCallback } from "react";
 import { FORMATS } from "@/families/types";
 import type { FamilyDefinition, TemplateDefinition, LayoutPreset, FieldValues, FormatId, BlockDef, ColorRole } from "@/families/types";
 import type { ImageState, MaskState, BlockPositions, BlockBooleans, BlockSizes } from "@/store/editor";
-import { blockKey } from "@/store/editor";
+import { blockKey, posKey } from "@/store/editor";
 
 interface CanvasProps {
   family: FamilyDefinition;
@@ -413,7 +413,8 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
             blk = { ...blk, noWrap: nw !== undefined ? nw : !!blk.defaultNoWrap };
           }
 
-          const custom = blockPositions[key];
+          const pkey = posKey(family.id, template.id, blk.id, format);
+          const custom = blockPositions[pkey] ?? blockPositions[key];
           const pos = custom ?? { x: blk.x, y: blk.y };
           return (
             <Draggable

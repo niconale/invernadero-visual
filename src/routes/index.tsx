@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { FAMILIES } from "@/families";
 import { FORMATS } from "@/families/types";
-import { useEditor, useCurrentTemplate } from "@/store/editor";
+import { useEditor, useCurrentTemplate, posKey } from "@/store/editor";
 import { Canvas } from "@/components/Canvas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -241,6 +241,28 @@ function EditorPage() {
                                 }}>Multilínea</button>
                             </div>
                           </div>
+                        );
+                      })()}
+                      {b.kind === "logo" && (() => {
+                        const pk = posKey(s.familyId, s.templateId, b.id, s.format);
+                        const cur = s.blockPositions[pk] ?? { x: b.x, y: b.y };
+                        return (
+                          <>
+                            <div>
+                              <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                                <span>Posición X</span><span>{Math.round(cur.x)}%</span>
+                              </div>
+                              <Slider value={[cur.x]} min={0} max={100} step={1}
+                                onValueChange={(v) => s.setBlockPos(b.id, { x: v[0], y: cur.y })} />
+                            </div>
+                            <div>
+                              <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                                <span>Posición Y</span><span>{Math.round(cur.y)}%</span>
+                              </div>
+                              <Slider value={[cur.y]} min={0} max={100} step={1}
+                                onValueChange={(v) => s.setBlockPos(b.id, { x: cur.x, y: v[0] })} />
+                            </div>
+                          </>
                         );
                       })()}
                     </div>
