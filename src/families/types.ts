@@ -17,7 +17,7 @@ export interface FieldDef {
   required?: boolean;
 }
 
-export type BlockKind = "text" | "vertical" | "date-box" | "cta" | "panel" | "data-stack";
+export type BlockKind = "text" | "vertical" | "date-box" | "cta" | "panel" | "data-stack" | "logo";
 export type ColorRole = "family" | "white" | "cream" | "dark";
 
 export interface BlockDef {
@@ -68,6 +68,11 @@ export interface BlockDef {
   defaultNoWrap?: boolean;
   /** If true, the UI shows the "Salto de línea" (1 línea / multilínea) selector for this block. */
   wrapControl?: boolean;
+  /** For logo: image URL and intrinsic width in px (canvas coords). */
+  imageUrl?: string;
+  logoWidth?: number;
+  /** For logo: tint to white (filter invert) — default true. */
+  logoWhite?: boolean;
 }
 
 export type PresetId = "A" | "B" | "C";

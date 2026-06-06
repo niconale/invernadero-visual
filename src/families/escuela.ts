@@ -1,4 +1,5 @@
 import type { FamilyDefinition, LayoutPreset, FieldValues, BlockDef } from "./types";
+import invernaderoLogo from "@/assets/invernadero-logo.png.asset.json";
 
 const PRESETS: LayoutPreset[] = [
   { id: "A", label: "Estándar" },
@@ -153,7 +154,7 @@ export const escuela: FamilyDefinition = {
       description: "Intensivos, masterclasses, talleres y cursos puntuales.",
       requiresPhoto: true,
       defaultValues: {
-        etiqueta: "ESCUELA · FORMACIÓN",
+        etiquetaForm: "ESCUELA · FORMACIÓN",
         titulo: "CUADRO\nRUSO",
         subtitulo: "DUO STERGY",
         fecha: "25 Y 26 MAYO",
@@ -168,7 +169,7 @@ export const escuela: FamilyDefinition = {
         { id: "C", label: "Título compacto", overrides: { titulo: { fontSize: 100 } } },
       ],
       blocks: [
-        // Panel derecho verde oscuro (~42% ancho)
+        // Panel derecho verde oscuro (~42% ancho), ligeramente translúcido
         {
           id: "panelDerecho",
           label: "Panel derecho",
@@ -177,7 +178,7 @@ export const escuela: FamilyDefinition = {
           fontFamily: "dm", fontSize: 0,
           color: "white", background: "dark",
           panelW: 42, panelH: 100,
-          bgOpacity: 1,
+          bgOpacity: 0.88,
         },
         // Línea vertical azul divisoria (fina)
         {
@@ -195,7 +196,7 @@ export const escuela: FamilyDefinition = {
           id: "etiqueta",
           label: "Pastilla superior (familia)",
           kind: "cta",
-          bind: "etiqueta",
+          bind: "etiquetaForm",
           x: 61, y: 5, align: "left",
           fontFamily: "dm", fontSize: 24, letterSpacing: "0.18em", weight: 700,
           color: "white", background: "family", uppercase: true, padding: 14,
@@ -211,15 +212,15 @@ export const escuela: FamilyDefinition = {
           color: "white", uppercase: true,
           wrapControl: true, defaultNoWrap: false,
         },
-        // Subtítulo
+        // Subtítulo: texto libre, multilínea, sin uppercase forzado
         {
           id: "subtitulo",
           label: "Subtítulo",
           kind: "text",
           bind: "subtitulo",
           x: 61, y: 56, align: "left", maxW: 36,
-          fontFamily: "dm", fontSize: 24, letterSpacing: "0.14em", weight: 600,
-          color: "cream", uppercase: true,
+          fontFamily: "dm", fontSize: 24, lineHeight: 1.35, letterSpacing: "0.02em", weight: 500,
+          color: "cream",
         },
         // Datos prácticos en la parte baja del panel derecho
         {
@@ -268,12 +269,24 @@ export const escuela: FamilyDefinition = {
           fontFamily: "dm", fontSize: 18, letterSpacing: "0.16em", weight: 600,
           color: "white", background: "family", uppercase: true, padding: 10,
         },
+        // Logo El Invernadero (opcional) — margen inferior derecho del panel verde
+        {
+          id: "logoInvernadero",
+          label: "Logo El Invernadero",
+          kind: "logo",
+          x: 96, y: 96, align: "right",
+          fontFamily: "dm", fontSize: 0,
+          color: "white",
+          imageUrl: invernaderoLogo.url,
+          logoWidth: 160,
+          logoWhite: true,
+        },
       ],
       fields: [
-        { id: "etiqueta", label: "Etiqueta superior", type: "text", maxLength: 32,
+        { id: "etiquetaForm", label: "Etiqueta superior", type: "text", maxLength: 32,
           options: ["ESCUELA · FORMACIÓN", "ESCUELA · MASTERCLASS", "ESCUELA · INTENSIVO", "ESCUELA · TALLER"] },
         { id: "titulo", label: "Título principal", type: "textarea", maxLength: 40, required: true },
-        { id: "subtitulo", label: "Subtítulo", type: "text", maxLength: 60 },
+        { id: "subtitulo", label: "Subtítulo (texto libre, multilínea)", type: "textarea", maxLength: 240 },
         { id: "fecha", label: "Fecha", type: "text", maxLength: 30 },
         { id: "nivel", label: "Nivel", type: "text", maxLength: 40 },
         { id: "horario", label: "Horario", type: "text", maxLength: 24 },

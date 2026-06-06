@@ -315,6 +315,26 @@ function BlockRender({
     );
   }
 
+  if (block.kind === "logo") {
+    if (!block.imageUrl) return null;
+    const w = block.logoWidth ?? 180;
+    const white = block.logoWhite !== false;
+    return (
+      <img
+        src={block.imageUrl}
+        alt=""
+        crossOrigin="anonymous"
+        style={{
+          width: w,
+          height: "auto",
+          display: "block",
+          filter: white ? "brightness(0) invert(1)" : undefined,
+          pointerEvents: "none",
+        }}
+      />
+    );
+  }
+
   // text
   const text = blockText(block, values, useSingleQuotes);
   if (!text) return null;
