@@ -190,15 +190,15 @@ export const escuela: FamilyDefinition = {
           panelW: 0.7, panelH: 100,
           bgOpacity: 1,
         },
-        // Pastilla azul superior dentro del panel derecho
+        // Pastilla azul superior dentro del panel derecho (acento de familia)
         {
           id: "etiqueta",
-          label: "Etiqueta superior",
+          label: "Pastilla superior (familia)",
           kind: "cta",
           bind: "etiqueta",
-          x: 61, y: 6, align: "left",
-          fontFamily: "dm", fontSize: 22, letterSpacing: "0.16em", weight: 600,
-          color: "white", background: "family", uppercase: true, padding: 12,
+          x: 61, y: 5, align: "left",
+          fontFamily: "dm", fontSize: 24, letterSpacing: "0.18em", weight: 700,
+          color: "white", background: "family", uppercase: true, padding: 14,
         },
         // Título principal (dentro del panel derecho)
         {
