@@ -128,6 +128,9 @@ export const useEditor = create<EditorState>()(
       setBlockSize: (blockId, mult) => set((s) => ({
         blockSizes: { ...s.blockSizes, [blockKey(s.familyId, s.templateId, blockId)]: mult },
       })),
+      setBlockNoWrap: (blockId, noWrap) => set((s) => ({
+        blockNoWrap: { ...s.blockNoWrap, [blockKey(s.familyId, s.templateId, blockId)]: noWrap },
+      })),
       setMergeHoraPublico: (v) => set({ mergeHoraPublico: v }),
       resetBlocks: () => set((s) => {
         const prefix = `${s.familyId}.${s.templateId}.`;
