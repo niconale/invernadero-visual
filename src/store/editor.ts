@@ -73,6 +73,12 @@ const defaultMask: MaskState = { top: 55, bottom: 70, left: 0, right: 0, feather
 export function blockKey(familyId: string, templateId: string, blockId: string) {
   return `${familyId}.${templateId}.${blockId}`;
 }
+/** Position key — separa Feed (4:5) y Story (9:16) para que cada formato tenga su propia posición. */
+export function posKey(familyId: string, templateId: string, blockId: string, format: FormatId) {
+  return format === "9:16"
+    ? `${familyId}.${templateId}.${blockId}@story`
+    : `${familyId}.${templateId}.${blockId}`;
+}
 
 function mergeValues(familyId: string, templateId: string, current: FieldValues): FieldValues {
   const tpl = (() => { try { return getTemplate(familyId, templateId); } catch { return null; } })();
