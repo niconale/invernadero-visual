@@ -126,7 +126,7 @@ export const useEditor = create<EditorState>()(
       clearImage: () => set(() => ({ image: { ...defaultImage, url: null } })),
       setMask: (patch) => set((s) => ({ mask: { ...s.mask, ...patch } })),
       setBlockPos: (blockId, pos) => set((s) => ({
-        blockPositions: { ...s.blockPositions, [blockKey(s.familyId, s.templateId, blockId)]: pos },
+        blockPositions: { ...s.blockPositions, [posKey(s.familyId, s.templateId, blockId, s.format)]: pos },
       })),
       setBlockHidden: (blockId, hidden) => set((s) => ({
         hiddenBlocks: { ...s.hiddenBlocks, [blockKey(s.familyId, s.templateId, blockId)]: hidden },
