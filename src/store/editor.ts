@@ -57,6 +57,7 @@ export interface EditorState {
   setBlockPos: (blockId: string, pos: BlockPos) => void;
   setBlockHidden: (blockId: string, hidden: boolean) => void;
   setBlockSize: (blockId: string, mult: number) => void;
+  setBlockNoWrap: (blockId: string, noWrap: boolean) => void;
   setMergeHoraPublico: (v: boolean) => void;
   resetBlocks: () => void;
   toggleQuotes: () => void;
