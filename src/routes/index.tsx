@@ -35,7 +35,7 @@ function EditorPage() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
   const [busy, setBusy] = useState(false);
-  const [copies, setCopies] = useState<string[]>([]);
+  const [copy, setCopy] = useState<null | { principal: string; corta: string; cta: string; hashtags: string[]; stories: string[] }>(null);
   const callGenerateCopy = useServerFn(generateCopy);
 
   const dims = FORMATS[s.format];
