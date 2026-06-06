@@ -382,6 +382,9 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
 
         {template.blocks.map((b) => {
           let blk = applyOverrides(b, preset);
+          if (format === "9:16" && b.storyOverrides) {
+            blk = { ...blk, ...b.storyOverrides };
+          }
           const key = blockKey(family.id, template.id, blk.id);
 
           // Programación: merge hora + público
