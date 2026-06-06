@@ -200,8 +200,8 @@ function Draggable({ block, effectivePos, onMove, scale, canvasW, canvasH, snapp
 }
 
 function BlockRender({
-  block, family, values, useSingleQuotes,
-}: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean }) {
+  block, family, values, useSingleQuotes, canvasW, canvasH,
+}: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean; canvasW: number; canvasH: number }) {
   const color = roleToColor(block.color, family);
   const bg = block.background ? roleToColor(block.background, family) : undefined;
   const fontFamily = block.fontFamily === "dm" ? DM : BEBAS;
