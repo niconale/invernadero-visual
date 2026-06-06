@@ -202,6 +202,7 @@ function BlockRender({
   const bg = block.background ? roleToColor(block.background, family) : undefined;
   const fontFamily = block.fontFamily === "dm" ? DM : BEBAS;
   const isFamilyTitle = block.id === "titleFamily";
+  const nowrap = !!block.noWrap;
   const base: React.CSSProperties = {
     fontFamily,
     color,
@@ -211,10 +212,10 @@ function BlockRender({
     fontWeight: block.weight as any,
     textTransform: block.uppercase ? "uppercase" : "none",
     textShadow: bg ? "none" : "0 2px 14px rgba(0,0,0,0.35)",
-    whiteSpace: isFamilyTitle ? "nowrap" : "pre-wrap",
-    wordBreak: isFamilyTitle ? "normal" : "break-word",
+    whiteSpace: nowrap || isFamilyTitle ? "nowrap" : "pre-wrap",
+    wordBreak: nowrap || isFamilyTitle ? "normal" : "break-word",
     overflow: "visible",
-    maxWidth: isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * 1080}px` : undefined),
+    maxWidth: nowrap || isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * 1080}px` : undefined),
     textAlign: block.align as any,
   };
 
