@@ -322,7 +322,7 @@ function BlockRender({
 
 export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
   { family, template, preset, format, values, image, mask, scale,
-    blockPositions, hiddenBlocks, blockSizes, mergeHoraPublico,
+    blockPositions, hiddenBlocks, blockSizes, blockNoWrap, mergeHoraPublico,
     onBlockMove, useSingleQuotes, snapping, showSafeZone, interactive },
   ref,
 ) {
