@@ -73,6 +73,8 @@ export interface BlockDef {
   logoWidth?: number;
   /** For logo: tint to white (filter invert) — default true. */
   logoWhite?: boolean;
+  /** Overrides applied only when canvas format is 9:16 (Story). */
+  storyOverrides?: Partial<BlockDef>;
 }
 
 export type PresetId = "A" | "B" | "C";
