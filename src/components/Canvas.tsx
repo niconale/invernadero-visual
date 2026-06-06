@@ -219,7 +219,7 @@ function BlockRender({
     whiteSpace: nowrap || isFamilyTitle ? "nowrap" : "pre-wrap",
     wordBreak: nowrap || isFamilyTitle ? "normal" : "break-word",
     overflow: "visible",
-    maxWidth: nowrap || isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * 1080}px` : undefined),
+    maxWidth: nowrap || isFamilyTitle ? "none" : (block.maxW ? `${(block.maxW / 100) * canvasW}px` : undefined),
     textAlign: block.align as any,
   };
 
