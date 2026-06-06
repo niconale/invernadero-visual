@@ -378,6 +378,10 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
           if (sizeMult !== 1) {
             blk = { ...blk, fontSize: blk.fontSize * sizeMult };
           }
+          if (blk.wrapControl) {
+            const nw = blockNoWrap[key];
+            blk = { ...blk, noWrap: nw !== undefined ? nw : !!blk.defaultNoWrap };
+          }
 
           const custom = blockPositions[key];
           const pos = custom ?? { x: blk.x, y: blk.y };
