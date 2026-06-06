@@ -44,6 +44,7 @@ export interface EditorState {
   snapping: boolean;
   showSafeZone: boolean;
   referenceCaptions: string;
+  contexto: string;
   setFamily: (id: string) => void;
   setTemplate: (id: string) => void;
   setFormat: (f: FormatId) => void;
@@ -61,6 +62,7 @@ export interface EditorState {
   setSnapping: (v: boolean) => void;
   setShowSafeZone: (v: boolean) => void;
   setReferenceCaptions: (v: string) => void;
+  setContexto: (v: string) => void;
 }
 
 const defaultImage: ImageState = { url: null, zoom: 1, x: 0, y: 0, brightness: 50, overlay: 45 };
@@ -101,6 +103,7 @@ export const useEditor = create<EditorState>()(
       snapping: false,
       showSafeZone: false,
       referenceCaptions: "",
+      contexto: "",
       setFamily: (id) => {
         const fam = FAMILIES.find((f) => f.id === id);
         const tplId = fam?.templates[0].id ?? "";
@@ -140,6 +143,7 @@ export const useEditor = create<EditorState>()(
       setSnapping: (v) => set({ snapping: v }),
       setShowSafeZone: (v) => set({ showSafeZone: v }),
       setReferenceCaptions: (v) => set({ referenceCaptions: v }),
+      setContexto: (v) => set({ contexto: v }),
     }),
     {
       name: "invernadero-editor-v5",
@@ -159,6 +163,7 @@ export const useEditor = create<EditorState>()(
         snapping: s.snapping,
         showSafeZone: s.showSafeZone,
         referenceCaptions: s.referenceCaptions,
+        contexto: s.contexto,
       }),
     },
   ),

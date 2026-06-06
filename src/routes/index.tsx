@@ -73,7 +73,7 @@ function EditorPage() {
     setBusy(true);
     try {
       const r = await callGenerateCopy({
-        data: { familia: s.familyId, plantilla: s.templateId, valores: s.values, referencias: s.referenceCaptions },
+        data: { familia: s.familyId, plantilla: s.templateId, valores: s.values, referencias: s.referenceCaptions, contexto: s.contexto },
       });
       setCopy(r.result);
       toast.success(r.source === "ai" ? "Copy generado con IA" : "Copy local");
@@ -289,7 +289,14 @@ function EditorPage() {
         </Section>
 
         <Section title="Copy con tono Invernadero">
-          <Label className="text-xs">Captions de referencia (opcional)</Label>
+          <Label className="text-xs">Contexto complementario para copy (opcional)</Label>
+          <Textarea
+            value={s.contexto}
+            onChange={(e) => s.setContexto(e.target.value)}
+            placeholder="Pegá sinopsis oficial, descripción de la compañía, notas internas, qué destacar, qué evitar, tono deseado, links de reserva, nivel o requisitos. Se usa como apoyo; los campos de la plantilla mandan."
+            rows={5} className="mt-1 text-xs"
+          />
+          <Label className="text-xs mt-3 block">Captions de referencia (opcional)</Label>
           <Textarea
             value={s.referenceCaptions}
             onChange={(e) => s.setReferenceCaptions(e.target.value)}
