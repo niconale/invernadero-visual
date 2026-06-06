@@ -68,6 +68,11 @@ export interface BlockDef {
   defaultNoWrap?: boolean;
   /** If true, the UI shows the "Salto de línea" (1 línea / multilínea) selector for this block. */
   wrapControl?: boolean;
+  /** For logo: image URL and intrinsic width in px (canvas coords). */
+  imageUrl?: string;
+  logoWidth?: number;
+  /** For logo: tint to white (filter invert) — default true. */
+  logoWhite?: boolean;
 }
 
 export type PresetId = "A" | "B" | "C";
