@@ -75,7 +75,7 @@ function EditorPage() {
       const r = await callGenerateCopy({
         data: { familia: s.familyId, plantilla: s.templateId, valores: s.values, referencias: s.referenceCaptions },
       });
-      setCopies(r.copies);
+      setCopy(r.result);
       toast.success(r.source === "ai" ? "Copy generado con IA" : "Copy local");
     } catch (e) { console.error(e); toast.error("No pude generar copy"); }
     finally { setBusy(false); }
