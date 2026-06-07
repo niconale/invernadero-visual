@@ -27,6 +27,7 @@ export type BlockPos = { x: number; y: number };
 export type BlockPositions = Record<string, BlockPos>;
 export type BlockBooleans = Record<string, boolean>;
 export type BlockSizes = Record<string, number>; // multiplier (1 = default)
+export type GuideState = { x: number; y: number; showX: boolean; showY: boolean };
 
 export interface EditorState {
   familyId: string;
@@ -46,6 +47,7 @@ export interface EditorState {
   showSafeZone: boolean;
   referenceCaptions: string;
   contexto: string;
+  guides: Record<FormatId, GuideState>;
   setFamily: (id: string) => void;
   setTemplate: (id: string) => void;
   setFormat: (f: FormatId) => void;
@@ -65,6 +67,7 @@ export interface EditorState {
   setShowSafeZone: (v: boolean) => void;
   setReferenceCaptions: (v: string) => void;
   setContexto: (v: string) => void;
+  setGuide: (format: FormatId, patch: Partial<GuideState>) => void;
 }
 
 const defaultImage: ImageState = { url: null, zoom: 1, x: 0, y: 0, brightness: 50, overlay: 45 };
@@ -113,6 +116,8 @@ export const useEditor = create<EditorState>()(
       showSafeZone: false,
       referenceCaptions: "",
       contexto: "",
+      guides: { "4:5": { x: 50, y: 50, showX: false, showY: false }, "9:16": { x: 50, y: 50, showX: false, showY: false } },
+      setGuide: (format, patch) => set((s) => ({ guides: { ...s.guides, [format]: { ...s.guides[format], ...patch } } })),
       setFamily: (id) => {
         const fam = FAMILIES.find((f) => f.id === id);
         const tplId = fam?.templates[0].id ?? "";
@@ -178,6 +183,7 @@ export const useEditor = create<EditorState>()(
         showSafeZone: s.showSafeZone,
         referenceCaptions: s.referenceCaptions,
         contexto: s.contexto,
+        guides: s.guides,
       }),
     },
   ),

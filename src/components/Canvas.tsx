@@ -2,7 +2,7 @@ import { forwardRef, useRef, useCallback } from "react";
 import { FORMATS } from "@/families/types";
 import type { FamilyDefinition, TemplateDefinition, LayoutPreset, FieldValues, FormatId, BlockDef, ColorRole } from "@/families/types";
 import type { ImageState, MaskState, BlockPositions, BlockBooleans, BlockSizes } from "@/store/editor";
-import { blockKey, posKey } from "@/store/editor";
+import { blockKey, posKey, useEditor } from "@/store/editor";
 
 interface CanvasProps {
   family: FamilyDefinition;
@@ -199,6 +199,63 @@ function Draggable({ block, effectivePos, onMove, scale, canvasW, canvasH, snapp
   );
 }
 
+/* ────────────────── Guías móviles (escuela / residencias) ────────────────── */
+
+function Guides({ format, canvasW, canvasH, scale }: { format: FormatId; canvasW: number; canvasH: number; scale: number }) {
+  const guideX = useEditor((s) => s.guides[format].x);
+  const guideY = useEditor((s) => s.guides[format].y);
+  const showX = useEditor((s) => s.guides[format].showX);
+  const showY = useEditor((s) => s.guides[format].showY);
+  const setGuide = useEditor((s) => s.setGuide);
+
+  const dragV = useRef<{ start: number; base: number } | null>(null);
+  const dragH = useRef<{ start: number; base: number } | null>(null);
+
+  if (!showX && !showY) return null;
+
+  return (
+    <>
+      {showX && (
+        <div
+          onPointerDown={(e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); dragV.current = { start: e.clientX, base: guideX }; }}
+          onPointerMove={(e) => {
+            if (!dragV.current) return;
+            const dx = (e.clientX - dragV.current.start) / scale;
+            const nx = Math.max(0, Math.min(100, dragV.current.base + (dx / canvasW) * 100));
+            setGuide(format, { x: nx });
+          }}
+          onPointerUp={(e) => { dragV.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {} }}
+          style={{
+            position: "absolute", top: 0, bottom: 0, left: `${guideX}%`,
+            width: 14, transform: "translateX(-50%)", cursor: "ew-resize", touchAction: "none", zIndex: 50,
+          }}
+        >
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "#22D3EE", boxShadow: "0 0 0 0.5px rgba(0,0,0,0.4)" }} />
+        </div>
+      )}
+      {showY && (
+        <div
+          onPointerDown={(e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); dragH.current = { start: e.clientY, base: guideY }; }}
+          onPointerMove={(e) => {
+            if (!dragH.current) return;
+            const dy = (e.clientY - dragH.current.start) / scale;
+            const ny = Math.max(0, Math.min(100, dragH.current.base + (dy / canvasH) * 100));
+            setGuide(format, { y: ny });
+          }}
+          onPointerUp={(e) => { dragH.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {} }}
+          style={{
+            position: "absolute", left: 0, right: 0, top: `${guideY}%`,
+            height: 14, transform: "translateY(-50%)", cursor: "ns-resize", touchAction: "none", zIndex: 50,
+          }}
+        >
+          <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: 1, background: "#22D3EE", boxShadow: "0 0 0 0.5px rgba(0,0,0,0.4)" }} />
+        </div>
+      )}
+    </>
+  );
+}
+
+
 function BlockRender({
   block, family, values, useSingleQuotes, canvasW, canvasH,
 }: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean; canvasW: number; canvasH: number }) {
@@ -370,14 +427,25 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
         <ImageBg image={image} />
         <MaskLayer mask={mask} image={image} />
 
-        {showSafeZone && interactive && (
-          <div
-            aria-hidden
-            style={{
-              position: "absolute", inset: `${dims.h * 0.05}px ${dims.w * 0.06}px`,
-              border: "2px dashed rgba(255,255,255,0.35)", pointerEvents: "none",
-            }}
-          />
+        {showSafeZone && interactive && (() => {
+          // Instagram-safe: Feed 4:5 ~5%/6%; Story 9:16 ~14% top + 16% bottom (UI overlays), ~5% lados.
+          const insetTop = format === "9:16" ? dims.h * 0.14 : dims.h * 0.05;
+          const insetBottom = format === "9:16" ? dims.h * 0.16 : dims.h * 0.05;
+          const insetX = format === "9:16" ? dims.w * 0.05 : dims.w * 0.06;
+          return (
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                top: insetTop, bottom: insetBottom, left: insetX, right: insetX,
+                border: "2px dashed rgba(255,255,255,0.35)", pointerEvents: "none",
+              }}
+            />
+          );
+        })()}
+
+        {interactive && (family.id === "escuela" || family.id === "residencias") && (
+          <Guides format={format} canvasW={dims.w} canvasH={dims.h} scale={scale} />
         )}
 
         {template.blocks.map((b) => {
@@ -406,6 +474,8 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
               ...blk,
               fontSize: blk.fontSize * sizeMult,
               logoWidth: blk.logoWidth ? blk.logoWidth * sizeMult : blk.logoWidth,
+              panelW: blk.kind === "panel" && blk.panelW != null ? blk.panelW * sizeMult : blk.panelW,
+              panelH: blk.kind === "panel" && blk.panelH != null ? blk.panelH * sizeMult : blk.panelH,
             };
           }
           if (blk.wrapControl) {

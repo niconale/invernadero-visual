@@ -332,6 +332,28 @@ function EditorPage() {
             <Label className="text-xs">Mostrar zona segura</Label>
             <Switch checked={s.showSafeZone} onCheckedChange={s.setShowSafeZone} />
           </div>
+
+          {(s.familyId === "escuela" || s.familyId === "residencias") && (
+            <div className="mt-3 pt-3 border-t space-y-2" style={{ borderColor: "rgba(0,0,0,0.06)" }}>
+              <Label className="text-xs font-medium">Guías ({s.format})</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">Guía vertical</Label>
+                <Switch
+                  checked={s.guides[s.format].showX}
+                  onCheckedChange={(v) => s.setGuide(s.format, { showX: v })}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label className="text-[11px] text-muted-foreground">Guía horizontal</Label>
+                <Switch
+                  checked={s.guides[s.format].showY}
+                  onCheckedChange={(v) => s.setGuide(s.format, { showY: v })}
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">Arrastralas sobre el canvas. Desactivalas antes de exportar.</p>
+            </div>
+          )}
+
           <Button variant="ghost" size="sm" className="w-full mt-3" onClick={s.resetBlocks}>
             <RotateCcw className="w-3 h-3 mr-1" /> Restablecer posiciones
           </Button>
