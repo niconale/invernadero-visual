@@ -478,6 +478,18 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
               panelH: blk.kind === "panel" && blk.panelH != null ? blk.panelH * sizeMult : blk.panelH,
             };
           }
+          // Per-format panel dim overrides (Ancho/Alto sliders)
+          if (blk.kind === "panel") {
+            const pdKey = posKey(family.id, template.id, blk.id, format);
+            const pd = panelDims[pdKey];
+            if (pd) {
+              blk = {
+                ...blk,
+                panelW: pd.w != null ? pd.w : blk.panelW,
+                panelH: pd.h != null ? pd.h : blk.panelH,
+              };
+            }
+          }
           if (blk.wrapControl) {
             const nw = blockNoWrap[key];
             blk = { ...blk, noWrap: nw !== undefined ? nw : !!blk.defaultNoWrap };
