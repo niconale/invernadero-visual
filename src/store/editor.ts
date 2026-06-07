@@ -116,6 +116,8 @@ export const useEditor = create<EditorState>()(
       showSafeZone: false,
       referenceCaptions: "",
       contexto: "",
+      guides: { "4:5": { x: 50, y: 50, showX: false, showY: false }, "9:16": { x: 50, y: 50, showX: false, showY: false } },
+      setGuide: (format, patch) => set((s) => ({ guides: { ...s.guides, [format]: { ...s.guides[format], ...patch } } })),
       setFamily: (id) => {
         const fam = FAMILIES.find((f) => f.id === id);
         const tplId = fam?.templates[0].id ?? "";
