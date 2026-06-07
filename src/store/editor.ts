@@ -183,6 +183,7 @@ export const useEditor = create<EditorState>()(
         showSafeZone: s.showSafeZone,
         referenceCaptions: s.referenceCaptions,
         contexto: s.contexto,
+        guides: s.guides,
       }),
     },
   ),
