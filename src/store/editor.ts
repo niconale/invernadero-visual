@@ -27,6 +27,8 @@ export type BlockPos = { x: number; y: number };
 export type BlockPositions = Record<string, BlockPos>;
 export type BlockBooleans = Record<string, boolean>;
 export type BlockSizes = Record<string, number>; // multiplier (1 = default)
+export type PanelDims = { w?: number; h?: number };
+export type BlockPanelDims = Record<string, PanelDims>; // keyed per-format (posKey)
 export type GuideState = { x: number; y: number; showX: boolean; showY: boolean };
 
 export interface EditorState {
@@ -40,6 +42,7 @@ export interface EditorState {
   blockPositions: BlockPositions;
   hiddenBlocks: BlockBooleans;
   blockSizes: BlockSizes;
+  blockPanelDims: BlockPanelDims;
   blockNoWrap: BlockBooleans;
   mergeHoraPublico: boolean;
   useSingleQuotes: boolean;
@@ -59,6 +62,7 @@ export interface EditorState {
   setBlockPos: (blockId: string, pos: BlockPos) => void;
   setBlockHidden: (blockId: string, hidden: boolean) => void;
   setBlockSize: (blockId: string, mult: number) => void;
+  setBlockPanelDim: (blockId: string, patch: PanelDims) => void;
   setBlockNoWrap: (blockId: string, noWrap: boolean) => void;
   setMergeHoraPublico: (v: boolean) => void;
   resetBlocks: () => void;
@@ -109,6 +113,7 @@ export const useEditor = create<EditorState>()(
       blockPositions: {},
       hiddenBlocks: {},
       blockSizes: {},
+      blockPanelDims: {},
       blockNoWrap: {},
       mergeHoraPublico: false,
       useSingleQuotes: true,
@@ -139,6 +144,10 @@ export const useEditor = create<EditorState>()(
       setBlockSize: (blockId, mult) => set((s) => ({
         blockSizes: { ...s.blockSizes, [blockKey(s.familyId, s.templateId, blockId)]: mult },
       })),
+      setBlockPanelDim: (blockId, patch) => set((s) => {
+        const k = posKey(s.familyId, s.templateId, blockId, s.format);
+        return { blockPanelDims: { ...s.blockPanelDims, [k]: { ...s.blockPanelDims[k], ...patch } } };
+      }),
       setBlockNoWrap: (blockId, noWrap) => set((s) => ({
         blockNoWrap: { ...s.blockNoWrap, [blockKey(s.familyId, s.templateId, blockId)]: noWrap },
       })),
@@ -154,6 +163,7 @@ export const useEditor = create<EditorState>()(
           blockPositions: filt(s.blockPositions),
           hiddenBlocks: filt(s.hiddenBlocks),
           blockSizes: filt(s.blockSizes),
+          blockPanelDims: filt(s.blockPanelDims),
           blockNoWrap: filt(s.blockNoWrap),
         };
       }),
@@ -176,6 +186,7 @@ export const useEditor = create<EditorState>()(
         blockPositions: s.blockPositions,
         hiddenBlocks: s.hiddenBlocks,
         blockSizes: s.blockSizes,
+        blockPanelDims: s.blockPanelDims,
         blockNoWrap: s.blockNoWrap,
         mergeHoraPublico: s.mergeHoraPublico,
         useSingleQuotes: s.useSingleQuotes,

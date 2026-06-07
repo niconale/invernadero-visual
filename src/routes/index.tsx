@@ -218,6 +218,30 @@ function EditorPage() {
                         <Slider value={[size]} min={0.5} max={1.8} step={0.05}
                           onValueChange={(v) => s.setBlockSize(b.id, v[0])} />
                       </div>
+                      {b.kind === "panel" && (() => {
+                        const pk = posKey(s.familyId, s.templateId, b.id, s.format);
+                        const pd = s.blockPanelDims[pk] ?? {};
+                        const curW = pd.w ?? (b.panelW ?? 100);
+                        const curH = pd.h ?? (b.panelH ?? 35);
+                        return (
+                          <>
+                            <div>
+                              <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                                <span>Ancho panel</span><span>{curW.toFixed(1)}%</span>
+                              </div>
+                              <Slider value={[curW]} min={1} max={100} step={0.5}
+                                onValueChange={(v) => s.setBlockPanelDim(b.id, { w: v[0] })} />
+                            </div>
+                            <div>
+                              <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                                <span>Alto panel</span><span>{curH.toFixed(1)}%</span>
+                              </div>
+                              <Slider value={[curH]} min={1} max={100} step={0.5}
+                                onValueChange={(v) => s.setBlockPanelDim(b.id, { h: v[0] })} />
+                            </div>
+                          </>
+                        );
+                      })()}
                       {b.wrapControl && (() => {
                         const nw = s.blockNoWrap[key];
                         const effective = nw !== undefined ? nw : !!b.defaultNoWrap;

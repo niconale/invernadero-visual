@@ -407,6 +407,7 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
   ref,
 ) {
   const dims = FORMATS[format];
+  const panelDims = useEditor((st) => st.blockPanelDims);
 
   return (
     <div
@@ -477,6 +478,18 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
               panelW: blk.kind === "panel" && blk.panelW != null ? blk.panelW * sizeMult : blk.panelW,
               panelH: blk.kind === "panel" && blk.panelH != null ? blk.panelH * sizeMult : blk.panelH,
             };
+          }
+          // Per-format panel dim overrides (Ancho/Alto sliders)
+          if (blk.kind === "panel") {
+            const pdKey = posKey(family.id, template.id, blk.id, format);
+            const pd = panelDims[pdKey];
+            if (pd) {
+              blk = {
+                ...blk,
+                panelW: pd.w != null ? pd.w : blk.panelW,
+                panelH: pd.h != null ? pd.h : blk.panelH,
+              };
+            }
           }
           if (blk.wrapControl) {
             const nw = blockNoWrap[key];
