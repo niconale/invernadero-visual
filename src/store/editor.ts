@@ -27,6 +27,8 @@ export type BlockPos = { x: number; y: number };
 export type BlockPositions = Record<string, BlockPos>;
 export type BlockBooleans = Record<string, boolean>;
 export type BlockSizes = Record<string, number>; // multiplier (1 = default)
+export type PanelDims = { w?: number; h?: number };
+export type BlockPanelDims = Record<string, PanelDims>; // keyed per-format (posKey)
 export type GuideState = { x: number; y: number; showX: boolean; showY: boolean };
 
 export interface EditorState {
