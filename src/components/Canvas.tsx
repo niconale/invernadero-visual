@@ -406,6 +406,8 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
               ...blk,
               fontSize: blk.fontSize * sizeMult,
               logoWidth: blk.logoWidth ? blk.logoWidth * sizeMult : blk.logoWidth,
+              panelW: blk.kind === "panel" && blk.panelW != null ? blk.panelW * sizeMult : blk.panelW,
+              panelH: blk.kind === "panel" && blk.panelH != null ? blk.panelH * sizeMult : blk.panelH,
             };
           }
           if (blk.wrapControl) {
