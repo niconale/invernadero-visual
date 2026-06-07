@@ -370,14 +370,25 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
         <ImageBg image={image} />
         <MaskLayer mask={mask} image={image} />
 
-        {showSafeZone && interactive && (
-          <div
-            aria-hidden
-            style={{
-              position: "absolute", inset: `${dims.h * 0.05}px ${dims.w * 0.06}px`,
-              border: "2px dashed rgba(255,255,255,0.35)", pointerEvents: "none",
-            }}
-          />
+        {showSafeZone && interactive && (() => {
+          // Instagram-safe: Feed 4:5 ~5%/6%; Story 9:16 ~14% top + 16% bottom (UI overlays), ~5% lados.
+          const insetTop = format === "9:16" ? dims.h * 0.14 : dims.h * 0.05;
+          const insetBottom = format === "9:16" ? dims.h * 0.16 : dims.h * 0.05;
+          const insetX = format === "9:16" ? dims.w * 0.05 : dims.w * 0.06;
+          return (
+            <div
+              aria-hidden
+              style={{
+                position: "absolute",
+                top: insetTop, bottom: insetBottom, left: insetX, right: insetX,
+                border: "2px dashed rgba(255,255,255,0.35)", pointerEvents: "none",
+              }}
+            />
+          );
+        })()}
+
+        {interactive && (family.id === "escuela" || family.id === "residencias") && (
+          <Guides format={format} canvasW={dims.w} canvasH={dims.h} scale={scale} />
         )}
 
         {template.blocks.map((b) => {
