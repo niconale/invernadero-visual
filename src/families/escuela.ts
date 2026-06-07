@@ -318,6 +318,7 @@ export const escuela: FamilyDefinition = {
         { id: "horario", label: "Horario", type: "text", maxLength: 24 },
         { id: "precio", label: "Precio", type: "text", maxLength: 16 },
         { id: "cta", label: "CTA", type: "text", maxLength: 32 },
+        { id: "profesor", label: "Profesor / Imparte", type: "text", maxLength: 40 },
       ],
     },
 
