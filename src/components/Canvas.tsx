@@ -2,7 +2,7 @@ import { forwardRef, useRef, useCallback } from "react";
 import { FORMATS } from "@/families/types";
 import type { FamilyDefinition, TemplateDefinition, LayoutPreset, FieldValues, FormatId, BlockDef, ColorRole } from "@/families/types";
 import type { ImageState, MaskState, BlockPositions, BlockBooleans, BlockSizes } from "@/store/editor";
-import { blockKey, posKey } from "@/store/editor";
+import { blockKey, posKey, useEditor } from "@/store/editor";
 
 interface CanvasProps {
   family: FamilyDefinition;
