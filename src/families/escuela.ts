@@ -280,6 +280,17 @@ export const escuela: FamilyDefinition = {
           color: "white", background: "family", uppercase: true, padding: 10,
           storyOverrides: { x: 57.5, y: 78, fontSize: 20, padding: 12 },
         },
+        // Profesor / quien imparte
+        {
+          id: "profesor",
+          label: "Profesor / Imparte",
+          kind: "cta",
+          bind: "profesor",
+          x: 61, y: 99, align: "left",
+          fontFamily: "dm", fontSize: 18, letterSpacing: "0.16em", weight: 600,
+          color: "white", background: "family", uppercase: true, padding: 10,
+          storyOverrides: { x: 57.5, y: 84, fontSize: 20, padding: 12 },
+        },
         // Logo El Invernadero (opcional) — margen inferior derecho del panel verde
         // align "left" → la X del slider corresponde al borde izquierdo de la imagen (estable, no deforma).
         {
