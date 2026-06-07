@@ -350,7 +350,7 @@ function EditorPage() {
                   onCheckedChange={(v) => s.setGuide(s.format, { showY: v })}
                 />
               </div>
-              <p className="text-[10px] text-muted-foreground">Arrastralas sobre el canvas. No se exportan.</p>
+              <p className="text-[10px] text-muted-foreground">Arrastralas sobre el canvas. Desactivalas antes de exportar.</p>
             </div>
           )}
 
