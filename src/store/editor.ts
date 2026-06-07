@@ -42,6 +42,7 @@ export interface EditorState {
   blockPositions: BlockPositions;
   hiddenBlocks: BlockBooleans;
   blockSizes: BlockSizes;
+  blockPanelDims: BlockPanelDims;
   blockNoWrap: BlockBooleans;
   mergeHoraPublico: boolean;
   useSingleQuotes: boolean;
