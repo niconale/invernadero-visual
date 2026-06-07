@@ -67,6 +67,7 @@ export interface EditorState {
   setShowSafeZone: (v: boolean) => void;
   setReferenceCaptions: (v: string) => void;
   setContexto: (v: string) => void;
+  setGuide: (format: FormatId, patch: Partial<GuideState>) => void;
 }
 
 const defaultImage: ImageState = { url: null, zoom: 1, x: 0, y: 0, brightness: 50, overlay: 45 };
