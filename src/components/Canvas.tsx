@@ -202,8 +202,6 @@ function Draggable({ block, effectivePos, onMove, scale, canvasW, canvasH, snapp
 /* ────────────────── Guías móviles (escuela / residencias) ────────────────── */
 
 function Guides({ format, canvasW, canvasH, scale }: { format: FormatId; canvasW: number; canvasH: number; scale: number }) {
-  // import lazy via dynamic hook to avoid changing top imports
-  const { useEditor } = require("@/store/editor") as typeof import("@/store/editor");
   const guideX = useEditor((s) => s.guides[format].x);
   const guideY = useEditor((s) => s.guides[format].y);
   const showX = useEditor((s) => s.guides[format].showX);
