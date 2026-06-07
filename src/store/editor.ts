@@ -163,6 +163,7 @@ export const useEditor = create<EditorState>()(
           blockPositions: filt(s.blockPositions),
           hiddenBlocks: filt(s.hiddenBlocks),
           blockSizes: filt(s.blockSizes),
+          blockPanelDims: filt(s.blockPanelDims),
           blockNoWrap: filt(s.blockNoWrap),
         };
       }),
@@ -185,6 +186,7 @@ export const useEditor = create<EditorState>()(
         blockPositions: s.blockPositions,
         hiddenBlocks: s.hiddenBlocks,
         blockSizes: s.blockSizes,
+        blockPanelDims: s.blockPanelDims,
         blockNoWrap: s.blockNoWrap,
         mergeHoraPublico: s.mergeHoraPublico,
         useSingleQuotes: s.useSingleQuotes,
