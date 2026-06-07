@@ -47,6 +47,7 @@ export interface EditorState {
   showSafeZone: boolean;
   referenceCaptions: string;
   contexto: string;
+  guides: Record<FormatId, GuideState>;
   setFamily: (id: string) => void;
   setTemplate: (id: string) => void;
   setFormat: (f: FormatId) => void;
