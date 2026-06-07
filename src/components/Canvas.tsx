@@ -199,6 +199,63 @@ function Draggable({ block, effectivePos, onMove, scale, canvasW, canvasH, snapp
   );
 }
 
+/* ────────────────── Guías móviles (escuela / residencias) ────────────────── */
+
+function Guides({ format, canvasW, canvasH, scale }: { format: FormatId; canvasW: number; canvasH: number; scale: number }) {
+  // import lazy via dynamic hook to avoid changing top imports
+  const { useEditor } = require("@/store/editor") as typeof import("@/store/editor");
+  const guideX = useEditor((s) => s.guides[format].x);
+  const guideY = useEditor((s) => s.guides[format].y);
+  const showX = useEditor((s) => s.guides[format].showX);
+  const showY = useEditor((s) => s.guides[format].showY);
+  const setGuide = useEditor((s) => s.setGuide);
+
+  const dragV = useRef<{ start: number; base: number } | null>(null);
+  const dragH = useRef<{ start: number; base: number } | null>(null);
+
+  if (!showX && !showY) return null;
+
+  return (
+    <>
+      {showX && (
+        <div
+          onPointerDown={(e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); dragV.current = { start: e.clientX, base: guideX }; }}
+          onPointerMove={(e) => {
+            if (!dragV.current) return;
+            const dx = (e.clientX - dragV.current.start) / scale;
+            const nx = Math.max(0, Math.min(100, dragV.current.base + (dx / canvasW) * 100));
+            setGuide(format, { x: nx });
+          }}
+          onPointerUp={(e) => { dragV.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {} }}
+          style={{
+            position: "absolute", top: 0, bottom: 0, left: `${guideX}%`,
+            width: 14, transform: "translateX(-50%)", cursor: "ew-resize", touchAction: "none", zIndex: 50,
+          }}
+        >
+          <div style={{ position: "absolute", top: 0, bottom: 0, left: "50%", width: 1, background: "#22D3EE", boxShadow: "0 0 0 0.5px rgba(0,0,0,0.4)" }} />
+        </div>
+      )}
+      {showY && (
+        <div
+          onPointerDown={(e) => { e.stopPropagation(); (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); dragH.current = { start: e.clientY, base: guideY }; }}
+          onPointerMove={(e) => {
+            if (!dragH.current) return;
+            const dy = (e.clientY - dragH.current.start) / scale;
+            const ny = Math.max(0, Math.min(100, dragH.current.base + (dy / canvasH) * 100));
+            setGuide(format, { y: ny });
+          }}
+          onPointerUp={(e) => { dragH.current = null; try { (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); } catch {} }}
+          style={{
+            position: "absolute", left: 0, right: 0, top: `${guideY}%`,
+            height: 14, transform: "translateY(-50%)", cursor: "ns-resize", touchAction: "none", zIndex: 50,
+          }}
+        >
+          <div style={{ position: "absolute", left: 0, right: 0, top: "50%", height: 1, background: "#22D3EE", boxShadow: "0 0 0 0.5px rgba(0,0,0,0.4)" }} />
+        </div>
+      )}
+    </>
+  );
+
 function BlockRender({
   block, family, values, useSingleQuotes, canvasW, canvasH,
 }: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean; canvasW: number; canvasH: number }) {
