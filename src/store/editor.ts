@@ -62,6 +62,7 @@ export interface EditorState {
   setBlockPos: (blockId: string, pos: BlockPos) => void;
   setBlockHidden: (blockId: string, hidden: boolean) => void;
   setBlockSize: (blockId: string, mult: number) => void;
+  setBlockPanelDim: (blockId: string, patch: PanelDims) => void;
   setBlockNoWrap: (blockId: string, noWrap: boolean) => void;
   setMergeHoraPublico: (v: boolean) => void;
   resetBlocks: () => void;
@@ -112,6 +113,7 @@ export const useEditor = create<EditorState>()(
       blockPositions: {},
       hiddenBlocks: {},
       blockSizes: {},
+      blockPanelDims: {},
       blockNoWrap: {},
       mergeHoraPublico: false,
       useSingleQuotes: true,
@@ -142,6 +144,10 @@ export const useEditor = create<EditorState>()(
       setBlockSize: (blockId, mult) => set((s) => ({
         blockSizes: { ...s.blockSizes, [blockKey(s.familyId, s.templateId, blockId)]: mult },
       })),
+      setBlockPanelDim: (blockId, patch) => set((s) => {
+        const k = posKey(s.familyId, s.templateId, blockId, s.format);
+        return { blockPanelDims: { ...s.blockPanelDims, [k]: { ...s.blockPanelDims[k], ...patch } } };
+      }),
       setBlockNoWrap: (blockId, noWrap) => set((s) => ({
         blockNoWrap: { ...s.blockNoWrap, [blockKey(s.familyId, s.templateId, blockId)]: noWrap },
       })),
