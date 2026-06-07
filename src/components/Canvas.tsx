@@ -255,6 +255,8 @@ function Guides({ format, canvasW, canvasH, scale }: { format: FormatId; canvasW
       )}
     </>
   );
+}
+
 
 function BlockRender({
   block, family, values, useSingleQuotes, canvasW, canvasH,
