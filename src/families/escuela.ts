@@ -162,6 +162,7 @@ export const escuela: FamilyDefinition = {
         horario: "10:00–14:00",
         precio: "45€",
         cta: "INSCRIPCIONES ABIERTAS",
+        profesor: "IMPARTE: NOMBRE APELLIDO",
       },
       presets: [
         { id: "A", label: "Estándar" },
