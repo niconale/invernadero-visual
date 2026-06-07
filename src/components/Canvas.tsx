@@ -407,6 +407,7 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
   ref,
 ) {
   const dims = FORMATS[format];
+  const panelDims = useEditor((st) => st.blockPanelDims);
 
   return (
     <div
