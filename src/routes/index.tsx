@@ -244,7 +244,7 @@ function EditorPage() {
                         );
                       })()}
                       {b.wrapControl && (() => {
-                        const nw = s.blockNoWrap[key];
+                        const nw = s.blockNoWrap[pk] ?? s.blockNoWrap[legacyKey];
                         const effective = nw !== undefined ? nw : !!b.defaultNoWrap;
                         return (
                           <div>
