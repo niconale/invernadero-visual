@@ -287,7 +287,9 @@ function BlockRender({
 }: { block: BlockDef; family: FamilyDefinition; values: FieldValues; useSingleQuotes: boolean; canvasW: number; canvasH: number }) {
   const color = roleToColor(block.color, family);
   const bg = block.background ? roleToColor(block.background, family) : undefined;
-  const fontFamily = block.fontFamily === "dm" ? DM : BEBAS;
+  const bebasStack = family.id === "residencias" ? BEBAS_RES : BEBAS;
+  const fontFamily = block.fontFamily === "dm" ? DM : bebasStack;
+
   const isFamilyTitle = block.id === "titleFamily";
   const nowrap = !!block.noWrap;
   const base: React.CSSProperties = {
