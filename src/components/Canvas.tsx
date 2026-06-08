@@ -385,7 +385,7 @@ function BlockRender({
       <img
         src={block.imageUrl}
         alt=""
-        crossOrigin="anonymous"
+        
         style={{
           width: w,
           height: "auto",
