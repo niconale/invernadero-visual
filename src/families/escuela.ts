@@ -280,10 +280,10 @@ export const escuela: FamilyDefinition = {
           color: "white", background: "family", uppercase: true, padding: 10,
           storyOverrides: { x: 57.5, y: 78, fontSize: 20, padding: 12 },
         },
-        // Profesor / quien imparte
+        // Nombre profesor/a
         {
           id: "profesor",
-          label: "Profesor / Imparte",
+          label: "Nombre profesor/a",
           kind: "cta",
           bind: "profesor",
           x: 61, y: 99, align: "left",
