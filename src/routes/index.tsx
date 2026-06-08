@@ -429,17 +429,48 @@ function EditorPage() {
           )}
         </Section>
 
-        <Section title="Máscaras graduadas">
+        <Section title="Máscaras graduadas (FCP)">
           <div className="space-y-3">
-            <SliderRow label="Máscara superior" value={s.mask.top} min={0} max={150} step={1} onChange={(v) => s.setMask({ top: v })} />
-            <SliderRow label="Máscara inferior" value={s.mask.bottom} min={0} max={150} step={1} onChange={(v) => s.setMask({ bottom: v })} />
+            <SliderRow label="Intensidad superior" value={s.mask.top} min={0} max={150} step={1} onChange={(v) => s.setMask({ top: v })} />
+            <SliderRow label="Inicio sombra superior" value={s.mask.topStart ?? 0} min={0} max={60} step={1} onChange={(v) => s.setMask({ topStart: v })} />
+            <SliderRow label="Intensidad inferior" value={s.mask.bottom} min={0} max={180} step={1} onChange={(v) => s.setMask({ bottom: v })} />
+            <SliderRow label="Inicio sombra inferior" value={s.mask.bottomStart ?? 0} min={0} max={60} step={1} onChange={(v) => s.setMask({ bottomStart: v })} />
             <SliderRow label="Máscara izquierda" value={s.mask.left} min={0} max={130} step={1} onChange={(v) => s.setMask({ left: v })} />
             <SliderRow label="Máscara derecha" value={s.mask.right} min={0} max={130} step={1} onChange={(v) => s.setMask({ right: v })} />
-            <SliderRow label="Alcance / tamaño" value={s.mask.size} min={0} max={130} step={1} onChange={(v) => s.setMask({ size: v })} />
-            <SliderRow label="Suavidad (feather)" value={s.mask.feather} min={0} max={120} step={1} onChange={(v) => s.setMask({ feather: v })} />
+            <SliderRow label="Alcance / tamaño" value={s.mask.size} min={0} max={150} step={1} onChange={(v) => s.setMask({ size: v })} />
+            <SliderRow label="Suavidad (feather)" value={s.mask.feather} min={0} max={130} step={1} onChange={(v) => s.setMask({ feather: v })} />
             <SliderRow label="Viñeteado" value={s.mask.vignette} min={0} max={120} step={1} onChange={(v) => s.setMask({ vignette: v })} />
+            <p className="text-[10px] text-muted-foreground leading-snug">
+              «Inicio» mantiene la zona pegada al borde a intensidad plena (plateau) antes de empezar el degradado. Útil para oscurecer la base sin caja negra.
+            </p>
           </div>
         </Section>
+
+        {s.familyId === "residencias" && (
+          <Section title="Tipografía Residencias">
+            <p className="text-[11px] text-muted-foreground leading-snug mb-2">
+              La fuente ideal es <strong>Bebas Neue Pro Expanded Bold</strong> (comercial, Fontfabric). No se puede incluir por licencia.
+              Subí el archivo .woff2 / .otf / .ttf que tengas con licencia y se aplicará al preview y al export.
+              Si no, se usa <em>Bebas Neue</em> como fallback (no es idéntico).
+            </p>
+            <input type="file" accept=".woff2,.woff,.otf,.ttf,font/*" id="font-upload" className="hidden"
+              onChange={(e) => e.target.files?.[0] && onFontFile(e.target.files[0])} />
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" className="flex-1" onClick={() => document.getElementById("font-upload")?.click()}>
+                <Upload className="w-3 h-3 mr-1" /> Subir fuente
+              </Button>
+              {s.residenciasFont && (
+                <Button variant="ghost" size="sm" onClick={() => s.setResidenciasFont(null)}><Trash2 className="w-3 h-3" /></Button>
+              )}
+            </div>
+            {s.residenciasFont && (
+              <p className="text-[11px] mt-2" style={{ color: "var(--color-marca-verde)" }}>
+                ✓ {s.residenciasFont.name}
+              </p>
+            )}
+          </Section>
+        )}
+
 
         <Section title="Disposición">
           <div className="grid grid-cols-3 gap-2">
