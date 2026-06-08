@@ -64,36 +64,49 @@ function ImageBg({ image }: { image: ImageState }) {
   );
 }
 
-/** Graduated masks: each side has intensity + reach. Feather softens the falloff.
- *  Extended range: bigger reach, softer feather, smoother 3-stop falloff. */
+/** Graduated mask, FCP-style. Each side has:
+ *  - intensity (opacity at the edge)
+ *  - reach (how far into the canvas the darkening extends)
+ *  - start (plateau: how far from the edge stays at full intensity before falling off)
+ *  - feather (softness of the falloff curve)
+ *  Gradients use a 5-stop S-curve to avoid hard banding. */
 function MaskLayer({ mask, image }: { mask: MaskState; image: ImageState }) {
   const overlay = image.overlay / 100;
-  // Reach: fraction of canvas a side mask covers. Pushed up to ~1.0 for bigger margin.
-  const reach = 0.12 + (mask.size / 100) * 0.88; // 0.12..1.0
-  const f = 0.2 + (mask.feather / 100) * 0.95;   // 0.2..1.15
+  // Reach: fraction of canvas a side mask covers (0..1.5 of canvas — large margin like FCP).
+  const reach = 0.12 + (mask.size / 100) * 0.95; // 0.12..1.07
+  // Feather scales the S-curve shape. Higher = softer.
+  const f = 0.25 + (mask.feather / 100) * 0.95; // 0.25..1.2
   const topI = Math.min(1, (mask.top / 100) * 1.15);
-  const botI = Math.min(1, (mask.bottom / 100) * 1.25);
+  const botI = Math.min(1, (mask.bottom / 100) * 1.4);
   const lftI = Math.min(1, (mask.left / 100) * 1.1);
   const rgtI = Math.min(1, (mask.right / 100) * 1.1);
+  // Plateau (start): % of canvas from the edge that stays full-strength before falling off.
+  const topStart = Math.max(0, Math.min(0.6, (mask.topStart ?? 0) / 100));
+  const botStart = Math.max(0, Math.min(0.6, (mask.bottomStart ?? 0) / 100));
   const sides = [
-    { angle: "180deg", intensity: topI, key: "top",    reach: Math.min(1, reach + 0.15) },
-    { angle: "0deg",   intensity: botI, key: "bottom", reach: Math.min(1, reach + 0.15) },
-    { angle: "90deg",  intensity: lftI, key: "left",   reach },
-    { angle: "270deg", intensity: rgtI, key: "right",  reach },
+    { angle: "180deg", intensity: topI, key: "top",    reach: Math.min(1.5, reach + topStart + 0.15), start: topStart },
+    { angle: "0deg",   intensity: botI, key: "bottom", reach: Math.min(1.5, reach + botStart + 0.2),  start: botStart },
+    { angle: "90deg",  intensity: lftI, key: "left",   reach, start: 0 },
+    { angle: "270deg", intensity: rgtI, key: "right",  reach, start: 0 },
   ];
   return (
     <>
       {overlay > 0 && (
         <div aria-hidden style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${overlay})` }} />
       )}
-      {sides.map(({ angle, intensity, key, reach: r }) => {
+      {sides.map(({ angle, intensity, key, reach: r, start }) => {
         if (intensity <= 0) return null;
-        const end = (r * 100).toFixed(1) + "%";
-        const mid = (r * 100 * Math.max(0.05, 1 - f * 0.55)).toFixed(1) + "%";
-        const near = (r * 100 * Math.max(0.02, 1 - f * 0.85)).toFixed(1) + "%";
+        const startPct = start * 100;
+        const endPct = Math.min(150, (r + start) * 100);
+        const span = endPct - startPct;
+        // S-curve falloff stops (relative to span)
+        const s1 = startPct + span * Math.max(0.06, 0.18 - f * 0.08);
+        const s2 = startPct + span * (0.42 - f * 0.12);
+        const s3 = startPct + span * (0.72 - f * 0.05);
         const i0 = intensity.toFixed(3);
-        const i1 = (intensity * 0.78).toFixed(3);
-        const i2 = (intensity * 0.32).toFixed(3);
+        const i1 = (intensity * 0.88).toFixed(3);
+        const i2 = (intensity * 0.55).toFixed(3);
+        const i3 = (intensity * 0.22).toFixed(3);
         return (
           <div
             key={key}
@@ -102,14 +115,17 @@ function MaskLayer({ mask, image }: { mask: MaskState; image: ImageState }) {
               position: "absolute", inset: 0,
               background: `linear-gradient(${angle},
                 rgba(0,0,0,${i0}) 0%,
-                rgba(0,0,0,${i1}) ${near},
-                rgba(0,0,0,${i2}) ${mid},
-                rgba(0,0,0,0) ${end})`,
+                rgba(0,0,0,${i0}) ${startPct.toFixed(2)}%,
+                rgba(0,0,0,${i1}) ${s1.toFixed(2)}%,
+                rgba(0,0,0,${i2}) ${s2.toFixed(2)}%,
+                rgba(0,0,0,${i3}) ${s3.toFixed(2)}%,
+                rgba(0,0,0,0) ${endPct.toFixed(2)}%)`,
               mixBlendMode: "multiply",
             }}
           />
         );
       })}
+
       {mask.vignette > 0 && (
         <div
           aria-hidden
