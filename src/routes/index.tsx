@@ -27,6 +27,28 @@ export const Route = createFileRoute("/")({
   component: EditorPage,
 });
 
+function readBlobAsDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("FILE_READER_EMPTY_RESULT"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("FILE_READER_FAILED"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function blobUrlToDataUrl(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`BLOB_FETCH_FAILED_${response.status}`);
+  return readBlobAsDataUrl(await response.blob());
+}
+
+function waitForCanvasPaint(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+}
+
 function EditorPage() {
   const s = useEditor();
   const tpl = useCurrentTemplate();
@@ -53,24 +75,73 @@ function EditorPage() {
     return () => window.removeEventListener("resize", fit);
   }, [dims.w, dims.h]);
 
-  const onFile = (file: File) => {
-    if (s.image.url) URL.revokeObjectURL(s.image.url);
-    s.setImage({ url: URL.createObjectURL(file), zoom: 1, x: 0, y: 0 });
+  const onFile = async (file: File) => {
+    try {
+      const dataUrl = await readBlobAsDataUrl(file);
+      s.setImage({ url: dataUrl, zoom: 1, x: 0, y: 0 });
+    } catch (error) {
+      console.error("[upload] FileReader failed", error);
+      toast.error("No se pudo cargar la imagen local.");
+    }
+  };
+
+  const getExportDebugInfo = (error?: unknown) => {
+    const node = canvasRef.current;
+    const rect = node?.getBoundingClientRect();
+    const imgs = node
+      ? Array.from(node.querySelectorAll("img")).map((img) => {
+          const src = img.currentSrc || img.src || "";
+          return {
+            srcExists: !!src,
+            srcType: src.startsWith("data:") ? "dataURL" : src.startsWith("blob:") ? "blob" : src ? "url" : "none",
+            complete: img.complete,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight,
+          };
+        })
+      : [];
+    return {
+      error,
+      familyId: s.familyId,
+      familyLabel: fam.label,
+      templateId: s.templateId,
+      templateLabel: tpl.label,
+      format: s.format,
+      imageSrc: {
+        exists: !!s.image.url,
+        type: s.image.url?.startsWith("data:") ? "dataURL" : s.image.url?.startsWith("blob:") ? "blob" : s.image.url ? "url" : "none",
+      },
+      exportNodeExists: !!node,
+      exportNodeDimensions: node
+        ? { cssWidth: rect?.width ?? 0, cssHeight: rect?.height ?? 0, exportWidth: dims.w, exportHeight: dims.h, offsetWidth: node.offsetWidth, offsetHeight: node.offsetHeight }
+        : null,
+      imagesInsideExportNode: imgs,
+    };
   };
 
   const handleExport = async (format: "png" | "jpg") => {
     if (!canvasRef.current) {
-      toast.error("No se pudo exportar. Revisa si hay imagen cargada o intenta de nuevo.");
+      console.error("[export] missing canvas node", getExportDebugInfo());
+      toast.error("No se pudo exportar el canvas. Mira la consola para ver el error técnico.");
       return;
     }
     setBusy(true);
     try {
+      if (s.image.url?.startsWith("blob:")) {
+        try {
+          const dataUrl = await blobUrlToDataUrl(s.image.url);
+          s.setImage({ url: dataUrl });
+          await waitForCanvasPaint();
+        } catch (blobError) {
+          console.error("[export] blob to dataURL conversion failed; trying visible canvas anyway", getExportDebugInfo(blobError));
+        }
+      }
       const name = `${slugify(fam.label)}_${slugify(tpl.label)}_${slugify(s.values.titulo || "pieza")}_${s.format.replace(":", "x")}`;
       await exportNode(canvasRef.current, format, dims.w, dims.h, name);
       toast.success(`Exportado ${format.toUpperCase()} · ${dims.w}×${dims.h}`);
     } catch (e) {
-      console.error("[export] error", e);
-      toast.error("No se pudo exportar. Revisa si hay imagen cargada o intenta de nuevo.");
+      console.error("[export] error", getExportDebugInfo(e));
+      toast.error("No se pudo exportar el canvas. Mira la consola para ver el error técnico.");
     } finally {
       setBusy(false);
     }
