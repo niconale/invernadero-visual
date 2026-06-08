@@ -59,42 +59,47 @@ function ImageBg({ image }: { image: ImageState }) {
   );
 }
 
-/** Graduated masks: each side has intensity + reach. Feather softens the falloff. */
+/** Graduated masks: each side has intensity + reach. Feather softens the falloff.
+ *  Extended range: bigger reach, softer feather, smoother 3-stop falloff. */
 function MaskLayer({ mask, image }: { mask: MaskState; image: ImageState }) {
-  const overlay = image.overlay / 100; // base flat overlay
-  // Reach: fraction of canvas the mask covers from each edge.
-  const reach = 0.15 + (mask.size / 100) * 0.55; // 0.15..0.7
-  // Feather: how soft the inner edge is. Higher = softer.
-  const f = 0.3 + (mask.feather / 100) * 0.7; // 0.3..1.0
-  // Each side intensity (0..1). Top gets a small extra ceiling for legibility.
-  const topIntensity = Math.min(1, (mask.top / 100) * 1.15);
-  const sides: Array<[string, number, string, number]> = [
-    // [angle, intensity, key, reach]
-    ["180deg", topIntensity, "top", Math.min(0.95, reach + 0.25)],
-    ["0deg", mask.bottom / 100, "bottom", reach],
-    ["90deg", mask.left / 100, "left", reach],
-    ["270deg", mask.right / 100, "right", reach],
+  const overlay = image.overlay / 100;
+  // Reach: fraction of canvas a side mask covers. Pushed up to ~1.0 for bigger margin.
+  const reach = 0.12 + (mask.size / 100) * 0.88; // 0.12..1.0
+  const f = 0.2 + (mask.feather / 100) * 0.95;   // 0.2..1.15
+  const topI = Math.min(1, (mask.top / 100) * 1.15);
+  const botI = Math.min(1, (mask.bottom / 100) * 1.25);
+  const lftI = Math.min(1, (mask.left / 100) * 1.1);
+  const rgtI = Math.min(1, (mask.right / 100) * 1.1);
+  const sides = [
+    { angle: "180deg", intensity: topI, key: "top",    reach: Math.min(1, reach + 0.15) },
+    { angle: "0deg",   intensity: botI, key: "bottom", reach: Math.min(1, reach + 0.15) },
+    { angle: "90deg",  intensity: lftI, key: "left",   reach },
+    { angle: "270deg", intensity: rgtI, key: "right",  reach },
   ];
   return (
     <>
-      {/* Flat overlay */}
       {overlay > 0 && (
         <div aria-hidden style={{ position: "absolute", inset: 0, background: `rgba(0,0,0,${overlay})` }} />
       )}
-      {sides.map(([angle, intensity, key, sideReach]) => {
-        if ((intensity as number) <= 0) return null;
-        const stopEnd = `${((sideReach as number) * 100).toFixed(1)}%`;
-        const stopMid = `${((sideReach as number) * 100 * (1 - f * 0.6)).toFixed(1)}%`;
+      {sides.map(({ angle, intensity, key, reach: r }) => {
+        if (intensity <= 0) return null;
+        const end = (r * 100).toFixed(1) + "%";
+        const mid = (r * 100 * Math.max(0.05, 1 - f * 0.55)).toFixed(1) + "%";
+        const near = (r * 100 * Math.max(0.02, 1 - f * 0.85)).toFixed(1) + "%";
+        const i0 = intensity.toFixed(3);
+        const i1 = (intensity * 0.78).toFixed(3);
+        const i2 = (intensity * 0.32).toFixed(3);
         return (
           <div
-            key={key as string}
+            key={key}
             aria-hidden
             style={{
               position: "absolute", inset: 0,
               background: `linear-gradient(${angle},
-                rgba(0,0,0,${((intensity as number) * 0.95).toFixed(3)}) 0%,
-                rgba(0,0,0,${((intensity as number) * 0.6).toFixed(3)}) ${stopMid},
-                rgba(0,0,0,0) ${stopEnd})`,
+                rgba(0,0,0,${i0}) 0%,
+                rgba(0,0,0,${i1}) ${near},
+                rgba(0,0,0,${i2}) ${mid},
+                rgba(0,0,0,0) ${end})`,
               mixBlendMode: "multiply",
             }}
           />
@@ -106,8 +111,8 @@ function MaskLayer({ mask, image }: { mask: MaskState; image: ImageState }) {
           style={{
             position: "absolute", inset: 0,
             background: `radial-gradient(ellipse at center,
-              rgba(0,0,0,0) 45%,
-              rgba(0,0,0,${(mask.vignette / 100 * 0.7).toFixed(3)}) 100%)`,
+              rgba(0,0,0,0) 40%,
+              rgba(0,0,0,${(mask.vignette / 100 * 0.75).toFixed(3)}) 100%)`,
             mixBlendMode: "multiply",
           }}
         />
