@@ -459,11 +459,12 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
           if (format === "9:16" && b.storyOverrides) {
             blk = { ...blk, ...b.storyOverrides };
           }
-          const key = blockKey(family.id, template.id, blk.id);
+          const legacyKey = blockKey(family.id, template.id, blk.id);
+          const pkey = posKey(family.id, template.id, blk.id, format);
 
           // Programación: merge hora + público
           if (family.id === "programacion" && mergeHoraPublico) {
-            if (blk.id === "publico") return null; // hide
+            if (blk.id === "publico") return null;
             if (blk.id === "hora") {
               const hora = (values.hora || "").trim();
               const pub = (values.publico || "").trim();
@@ -472,9 +473,10 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
             }
           }
 
-          if (hiddenBlocks[key]) return null;
+          const hidden = hiddenBlocks[pkey] ?? hiddenBlocks[legacyKey];
+          if (hidden) return null;
 
-          const sizeMult = blockSizes[key] ?? 1;
+          const sizeMult = blockSizes[pkey] ?? blockSizes[legacyKey] ?? 1;
           if (sizeMult !== 1) {
             blk = {
               ...blk,
@@ -484,10 +486,8 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
               panelH: blk.kind === "panel" && blk.panelH != null ? blk.panelH * sizeMult : blk.panelH,
             };
           }
-          // Per-format panel dim overrides (Ancho/Alto sliders)
           if (blk.kind === "panel") {
-            const pdKey = posKey(family.id, template.id, blk.id, format);
-            const pd = panelDims[pdKey];
+            const pd = panelDims[pkey];
             if (pd) {
               blk = {
                 ...blk,
@@ -497,12 +497,11 @@ export const Canvas = forwardRef<HTMLDivElement, CanvasProps>(function Canvas(
             }
           }
           if (blk.wrapControl) {
-            const nw = blockNoWrap[key];
+            const nw = blockNoWrap[pkey] ?? blockNoWrap[legacyKey];
             blk = { ...blk, noWrap: nw !== undefined ? nw : !!blk.defaultNoWrap };
           }
 
-          const pkey = posKey(family.id, template.id, blk.id, format);
-          const custom = blockPositions[pkey] ?? blockPositions[key];
+          const custom = blockPositions[pkey] ?? blockPositions[legacyKey];
           const pos = custom ?? { x: blk.x, y: blk.y };
           return (
             <Draggable
