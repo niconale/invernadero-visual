@@ -40,8 +40,8 @@ export async function exportNode(
 ) {
   // 1) Asegurar fuentes cargadas (Bebas Neue, DM Sans).
   try {
-    if ((document as any).fonts?.ready) {
-      await (document as any).fonts.ready;
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
     }
   } catch (e) {
     console.warn("[export] fonts.ready failed", e);
