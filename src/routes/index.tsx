@@ -54,13 +54,47 @@ function EditorPage() {
   }, [dims.w, dims.h]);
 
   const onFile = (file: File) => {
-    if (s.image.url) URL.revokeObjectURL(s.image.url);
-    s.setImage({ url: URL.createObjectURL(file), zoom: 1, x: 0, y: 0 });
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : null;
+      if (!dataUrl) {
+        toast.error("No se pudo cargar la imagen local.");
+        return;
+      }
+      s.setImage({ url: dataUrl, zoom: 1, x: 0, y: 0 });
+    };
+    reader.onerror = () => {
+      console.error("[upload] FileReader failed", reader.error);
+      toast.error("No se pudo cargar la imagen local.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const getExportDebugInfo = (error?: unknown) => {
+    const node = canvasRef.current;
+    const rect = node?.getBoundingClientRect();
+    return {
+      error,
+      familyId: s.familyId,
+      familyLabel: fam.label,
+      templateId: s.templateId,
+      templateLabel: tpl.label,
+      format: s.format,
+      imageSrc: {
+        exists: !!s.image.url,
+        type: s.image.url?.startsWith("data:") ? "dataURL" : s.image.url?.startsWith("blob:") ? "blob" : s.image.url ? "url" : "none",
+      },
+      exportNodeExists: !!node,
+      exportNodeDimensions: node
+        ? { cssWidth: rect?.width ?? 0, cssHeight: rect?.height ?? 0, exportWidth: dims.w, exportHeight: dims.h, offsetWidth: node.offsetWidth, offsetHeight: node.offsetHeight }
+        : null,
+    };
   };
 
   const handleExport = async (format: "png" | "jpg") => {
     if (!canvasRef.current) {
-      toast.error("No se pudo exportar. Revisa si hay imagen cargada o intenta de nuevo.");
+      console.error("[export] missing canvas node", getExportDebugInfo());
+      toast.error("No se pudo exportar el canvas. Mira la consola para ver el error técnico.");
       return;
     }
     setBusy(true);
@@ -69,8 +103,8 @@ function EditorPage() {
       await exportNode(canvasRef.current, format, dims.w, dims.h, name);
       toast.success(`Exportado ${format.toUpperCase()} · ${dims.w}×${dims.h}`);
     } catch (e) {
-      console.error("[export] error", e);
-      toast.error("No se pudo exportar. Revisa si hay imagen cargada o intenta de nuevo.");
+      console.error("[export] error", getExportDebugInfo(e));
+      toast.error("No se pudo exportar el canvas. Mira la consola para ver el error técnico.");
     } finally {
       setBusy(false);
     }
