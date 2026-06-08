@@ -25,9 +25,14 @@ interface CanvasProps {
   interactive: boolean;
 }
 
+/** Font stacks. Residencias uses a wider "display" stack; when the user uploads a
+ *  Bebas Neue Pro Expanded Bold (or similar) it registers as "ResidenciasDisplay"
+ *  and takes priority. Otherwise Bebas Neue is used as a fallback (not identical). */
 const BEBAS = '"Bebas Neue", "DM Sans", sans-serif';
+const BEBAS_RES = '"ResidenciasDisplay", "Bebas Neue", "DM Sans", sans-serif';
 const DM = '"DM Sans", sans-serif';
 const CREMA = "#F3EDE0";
+
 
 function quoted(s: string, useSingle: boolean): string {
   const t = s.trim();
