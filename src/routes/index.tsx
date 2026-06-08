@@ -27,6 +27,28 @@ export const Route = createFileRoute("/")({
   component: EditorPage,
 });
 
+function readBlobAsDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("FILE_READER_EMPTY_RESULT"));
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("FILE_READER_FAILED"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function blobUrlToDataUrl(url: string): Promise<string> {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(`BLOB_FETCH_FAILED_${response.status}`);
+  return readBlobAsDataUrl(await response.blob());
+}
+
+function waitForCanvasPaint(): Promise<void> {
+  return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+}
+
 function EditorPage() {
   const s = useEditor();
   const tpl = useCurrentTemplate();
@@ -53,26 +75,31 @@ function EditorPage() {
     return () => window.removeEventListener("resize", fit);
   }, [dims.w, dims.h]);
 
-  const onFile = (file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = typeof reader.result === "string" ? reader.result : null;
-      if (!dataUrl) {
-        toast.error("No se pudo cargar la imagen local.");
-        return;
-      }
+  const onFile = async (file: File) => {
+    try {
+      const dataUrl = await readBlobAsDataUrl(file);
       s.setImage({ url: dataUrl, zoom: 1, x: 0, y: 0 });
-    };
-    reader.onerror = () => {
-      console.error("[upload] FileReader failed", reader.error);
+    } catch (error) {
+      console.error("[upload] FileReader failed", error);
       toast.error("No se pudo cargar la imagen local.");
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   const getExportDebugInfo = (error?: unknown) => {
     const node = canvasRef.current;
     const rect = node?.getBoundingClientRect();
+    const imgs = node
+      ? Array.from(node.querySelectorAll("img")).map((img) => {
+          const src = img.currentSrc || img.src || "";
+          return {
+            srcExists: !!src,
+            srcType: src.startsWith("data:") ? "dataURL" : src.startsWith("blob:") ? "blob" : src ? "url" : "none",
+            complete: img.complete,
+            naturalWidth: img.naturalWidth,
+            naturalHeight: img.naturalHeight,
+          };
+        })
+      : [];
     return {
       error,
       familyId: s.familyId,
@@ -88,6 +115,7 @@ function EditorPage() {
       exportNodeDimensions: node
         ? { cssWidth: rect?.width ?? 0, cssHeight: rect?.height ?? 0, exportWidth: dims.w, exportHeight: dims.h, offsetWidth: node.offsetWidth, offsetHeight: node.offsetHeight }
         : null,
+      imagesInsideExportNode: imgs,
     };
   };
 
@@ -99,6 +127,15 @@ function EditorPage() {
     }
     setBusy(true);
     try {
+      if (s.image.url?.startsWith("blob:")) {
+        try {
+          const dataUrl = await blobUrlToDataUrl(s.image.url);
+          s.setImage({ url: dataUrl });
+          await waitForCanvasPaint();
+        } catch (blobError) {
+          console.error("[export] blob to dataURL conversion failed; trying visible canvas anyway", getExportDebugInfo(blobError));
+        }
+      }
       const name = `${slugify(fam.label)}_${slugify(tpl.label)}_${slugify(s.values.titulo || "pieza")}_${s.format.replace(":", "x")}`;
       await exportNode(canvasRef.current, format, dims.w, dims.h, name);
       toast.success(`Exportado ${format.toUpperCase()} · ${dims.w}×${dims.h}`);
