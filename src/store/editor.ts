@@ -61,6 +61,10 @@ export interface EditorState {
   referenceCaptions: string;
   contexto: string;
   guides: Record<FormatId, GuideState>;
+  /** Custom display font for Residencias (data URL of .woff2/.otf/.ttf). */
+  residenciasFont: { dataUrl: string; mime: string; name: string } | null;
+  setResidenciasFont: (font: { dataUrl: string; mime: string; name: string } | null) => void;
+
   setFamily: (id: string) => void;
   setTemplate: (id: string) => void;
   setFormat: (f: FormatId) => void;
@@ -157,7 +161,10 @@ export const useEditor = create<EditorState>()(
       referenceCaptions: "",
       contexto: "",
       guides: { "4:5": { x: 50, y: 50, showX: false, showY: false }, "9:16": { x: 50, y: 50, showX: false, showY: false } },
+      residenciasFont: null,
+      setResidenciasFont: (font) => set({ residenciasFont: font }),
       setGuide: (format, patch) => set((s) => ({ guides: { ...s.guides, [format]: { ...s.guides[format], ...patch } } })),
+
       setFamily: (id) => set((s) => {
         const fam = FAMILIES.find((f) => f.id === id);
         const tplId = fam?.templates[0].id ?? "";
@@ -258,10 +265,12 @@ export const useEditor = create<EditorState>()(
         referenceCaptions: s.referenceCaptions,
         contexto: s.contexto,
         guides: s.guides,
+        residenciasFont: s.residenciasFont,
       }),
     },
   ),
 );
+
 
 export function useCurrentTemplate() {
   const { familyId, templateId } = useEditor();
