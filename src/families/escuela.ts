@@ -29,6 +29,7 @@ const baseDefaults: FieldValues = {
   dato3: "30·50€",
   dato3Label: "INTENSIVOS",
   rango: "1 – 29 JUL",
+  profesor: "IMPARTE: NOMBRE APELLIDO",
 };
 
 const blocks: BlockDef[] = [
