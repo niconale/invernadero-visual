@@ -20,7 +20,11 @@ export interface MaskState {
   feather: number;
   size: number;
   vignette: number;
+  /** Graduated mask plateau: % of canvas from the edge that stays at full intensity before the gradient begins falling off. FCP-style. */
+  topStart: number;
+  bottomStart: number;
 }
+
 
 export type BlockPos = { x: number; y: number };
 export type BlockPositions = Record<string, BlockPos>;
@@ -81,7 +85,8 @@ export interface EditorState {
 }
 
 const defaultImage: ImageState = { url: null, zoom: 1, x: 0, y: 0, brightness: 50, overlay: 45 };
-const defaultMask: MaskState = { top: 55, bottom: 70, left: 0, right: 0, feather: 60, size: 45, vignette: 15 };
+const defaultMask: MaskState = { top: 55, bottom: 70, left: 0, right: 0, feather: 60, size: 45, vignette: 15, topStart: 0, bottomStart: 0 };
+
 
 export function blockKey(familyId: string, templateId: string, blockId: string) {
   return `${familyId}.${templateId}.${blockId}`;
