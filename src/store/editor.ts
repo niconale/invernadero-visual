@@ -13,23 +13,27 @@ export interface ImageState {
 }
 
 export interface MaskState {
-  top: number;       // 0..100 intensity
+  top: number;
   bottom: number;
   left: number;
   right: number;
-  feather: number;   // 0..100 controls falloff softness
-  size: number;      // 0..100 controls how far inward the mask reaches
-  vignette: number;  // 0..100
+  feather: number;
+  size: number;
+  vignette: number;
 }
 
 export type BlockPos = { x: number; y: number };
-/** Key = `${familyId}.${templateId}.${blockId}` */
 export type BlockPositions = Record<string, BlockPos>;
 export type BlockBooleans = Record<string, boolean>;
-export type BlockSizes = Record<string, number>; // multiplier (1 = default)
+export type BlockSizes = Record<string, number>;
 export type PanelDims = { w?: number; h?: number };
-export type BlockPanelDims = Record<string, PanelDims>; // keyed per-format (posKey)
+export type BlockPanelDims = Record<string, PanelDims>;
 export type GuideState = { x: number; y: number; showX: boolean; showY: boolean };
+
+export interface PieceState {
+  image: ImageState;
+  mask: MaskState;
+}
 
 export interface EditorState {
   familyId: string;
@@ -39,6 +43,8 @@ export interface EditorState {
   values: FieldValues;
   image: ImageState;
   mask: MaskState;
+  /** Snapshot of image+mask per family|template|format. */
+  pieces: Record<string, PieceState>;
   blockPositions: BlockPositions;
   hiddenBlocks: BlockBooleans;
   blockSizes: BlockSizes;
@@ -80,11 +86,15 @@ const defaultMask: MaskState = { top: 55, bottom: 70, left: 0, right: 0, feather
 export function blockKey(familyId: string, templateId: string, blockId: string) {
   return `${familyId}.${templateId}.${blockId}`;
 }
-/** Position key — separa Feed (4:5) y Story (9:16) para que cada formato tenga su propia posición. */
+/** Per-format key, used for positions, sizes, visibility, panel dims, noWrap. */
 export function posKey(familyId: string, templateId: string, blockId: string, format: FormatId) {
   return format === "9:16"
     ? `${familyId}.${templateId}.${blockId}@story`
     : `${familyId}.${templateId}.${blockId}`;
+}
+/** Per-piece key for image + mask state (family|template|format). */
+export function pieceKey(familyId: string, templateId: string, format: FormatId) {
+  return `${familyId}|${templateId}|${format}`;
 }
 
 function mergeValues(familyId: string, templateId: string, current: FieldValues): FieldValues {
@@ -100,6 +110,25 @@ function mergeValues(familyId: string, templateId: string, current: FieldValues)
   return next;
 }
 
+/** Snapshot current image+mask into pieces, load target piece (or defaults). */
+function switchPiece(
+  state: EditorState,
+  nextFamily: string,
+  nextTemplate: string,
+  nextFormat: FormatId,
+): Partial<EditorState> {
+  const prevKey = pieceKey(state.familyId, state.templateId, state.format);
+  const nextKey = pieceKey(nextFamily, nextTemplate, nextFormat);
+  if (prevKey === nextKey) return {};
+  const pieces = { ...state.pieces, [prevKey]: { image: state.image, mask: state.mask } };
+  const target = pieces[nextKey];
+  return {
+    pieces,
+    image: target ? target.image : { ...defaultImage, url: null },
+    mask: target ? target.mask : { ...defaultMask },
+  };
+}
+
 export const useEditor = create<EditorState>()(
   persist(
     (set, get) => ({
@@ -110,6 +139,7 @@ export const useEditor = create<EditorState>()(
       values: { ...(FAMILIES[0].templates[0].defaultValues ?? {}) },
       image: defaultImage,
       mask: defaultMask,
+      pieces: {},
       blockPositions: {},
       hiddenBlocks: {},
       blockSizes: {},
@@ -123,33 +153,57 @@ export const useEditor = create<EditorState>()(
       contexto: "",
       guides: { "4:5": { x: 50, y: 50, showX: false, showY: false }, "9:16": { x: 50, y: 50, showX: false, showY: false } },
       setGuide: (format, patch) => set((s) => ({ guides: { ...s.guides, [format]: { ...s.guides[format], ...patch } } })),
-      setFamily: (id) => {
+      setFamily: (id) => set((s) => {
         const fam = FAMILIES.find((f) => f.id === id);
         const tplId = fam?.templates[0].id ?? "";
-        set({ familyId: id, templateId: tplId, values: mergeValues(id, tplId, get().values) });
-      },
-      setTemplate: (id) => set((s) => ({ templateId: id, values: mergeValues(s.familyId, id, s.values) })),
-      setFormat: (f) => set({ format: f }),
+        return {
+          familyId: id,
+          templateId: tplId,
+          values: mergeValues(id, tplId, s.values),
+          ...switchPiece(s, id, tplId, s.format),
+        };
+      }),
+      setTemplate: (id) => set((s) => ({
+        templateId: id,
+        values: mergeValues(s.familyId, id, s.values),
+        ...switchPiece(s, s.familyId, id, s.format),
+      })),
+      setFormat: (f) => set((s) => ({
+        format: f,
+        ...switchPiece(s, s.familyId, s.templateId, f),
+      })),
       setPreset: (p) => set({ preset: p }),
       setValue: (k, v) => set((s) => ({ values: { ...s.values, [k]: v } })),
-      setImage: (patch) => set((s) => ({ image: { ...s.image, ...patch } })),
-      clearImage: () => set(() => ({ image: { ...defaultImage, url: null } })),
-      setMask: (patch) => set((s) => ({ mask: { ...s.mask, ...patch } })),
+      setImage: (patch) => set((s) => {
+        const image = { ...s.image, ...patch };
+        const k = pieceKey(s.familyId, s.templateId, s.format);
+        return { image, pieces: { ...s.pieces, [k]: { image, mask: s.mask } } };
+      }),
+      clearImage: () => set((s) => {
+        const image = { ...defaultImage, url: null };
+        const k = pieceKey(s.familyId, s.templateId, s.format);
+        return { image, pieces: { ...s.pieces, [k]: { image, mask: s.mask } } };
+      }),
+      setMask: (patch) => set((s) => {
+        const mask = { ...s.mask, ...patch };
+        const k = pieceKey(s.familyId, s.templateId, s.format);
+        return { mask, pieces: { ...s.pieces, [k]: { image: s.image, mask } } };
+      }),
       setBlockPos: (blockId, pos) => set((s) => ({
         blockPositions: { ...s.blockPositions, [posKey(s.familyId, s.templateId, blockId, s.format)]: pos },
       })),
       setBlockHidden: (blockId, hidden) => set((s) => ({
-        hiddenBlocks: { ...s.hiddenBlocks, [blockKey(s.familyId, s.templateId, blockId)]: hidden },
+        hiddenBlocks: { ...s.hiddenBlocks, [posKey(s.familyId, s.templateId, blockId, s.format)]: hidden },
       })),
       setBlockSize: (blockId, mult) => set((s) => ({
-        blockSizes: { ...s.blockSizes, [blockKey(s.familyId, s.templateId, blockId)]: mult },
+        blockSizes: { ...s.blockSizes, [posKey(s.familyId, s.templateId, blockId, s.format)]: mult },
       })),
       setBlockPanelDim: (blockId, patch) => set((s) => {
         const k = posKey(s.familyId, s.templateId, blockId, s.format);
         return { blockPanelDims: { ...s.blockPanelDims, [k]: { ...s.blockPanelDims[k], ...patch } } };
       }),
       setBlockNoWrap: (blockId, noWrap) => set((s) => ({
-        blockNoWrap: { ...s.blockNoWrap, [blockKey(s.familyId, s.templateId, blockId)]: noWrap },
+        blockNoWrap: { ...s.blockNoWrap, [posKey(s.familyId, s.templateId, blockId, s.format)]: noWrap },
       })),
       setMergeHoraPublico: (v) => set({ mergeHoraPublico: v }),
       resetBlocks: () => set((s) => {
@@ -174,7 +228,7 @@ export const useEditor = create<EditorState>()(
       setContexto: (v) => set({ contexto: v }),
     }),
     {
-      name: "invernadero-editor-v5",
+      name: "invernadero-editor-v6",
       partialize: (s) => ({
         familyId: s.familyId,
         templateId: s.templateId,
@@ -183,6 +237,10 @@ export const useEditor = create<EditorState>()(
         values: s.values,
         image: { ...s.image, url: null },
         mask: s.mask,
+        // strip blob URLs from persisted pieces; user re-uploads images per session
+        pieces: Object.fromEntries(
+          Object.entries(s.pieces).map(([k, v]) => [k, { image: { ...v.image, url: null }, mask: v.mask }]),
+        ),
         blockPositions: s.blockPositions,
         hiddenBlocks: s.hiddenBlocks,
         blockSizes: s.blockSizes,

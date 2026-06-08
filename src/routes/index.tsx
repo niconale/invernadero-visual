@@ -195,9 +195,10 @@ function EditorPage() {
         <Section title="Bloques">
           <div className="space-y-3">
             {tpl.blocks.map((b) => {
-              const key = `${s.familyId}.${s.templateId}.${b.id}`;
-              const hidden = !!s.hiddenBlocks[key];
-              const size = s.blockSizes[key] ?? 1;
+              const legacyKey = `${s.familyId}.${s.templateId}.${b.id}`;
+              const pk = posKey(s.familyId, s.templateId, b.id, s.format);
+              const hidden = s.hiddenBlocks[pk] ?? s.hiddenBlocks[legacyKey] ?? false;
+              const size = s.blockSizes[pk] ?? s.blockSizes[legacyKey] ?? 1;
               const mergedHidden = s.familyId === "programacion" && s.mergeHoraPublico && b.id === "publico";
               return (
                 <div key={b.id} className="rounded border p-2" style={{ borderColor: "rgba(0,0,0,0.08)", opacity: mergedHidden ? 0.5 : 1 }}>
@@ -243,7 +244,7 @@ function EditorPage() {
                         );
                       })()}
                       {b.wrapControl && (() => {
-                        const nw = s.blockNoWrap[key];
+                        const nw = s.blockNoWrap[pk] ?? s.blockNoWrap[legacyKey];
                         const effective = nw !== undefined ? nw : !!b.defaultNoWrap;
                         return (
                           <div>
@@ -322,13 +323,13 @@ function EditorPage() {
 
         <Section title="Máscaras graduadas">
           <div className="space-y-3">
-            <SliderRow label="Máscara superior" value={s.mask.top} min={0} max={130} step={1} onChange={(v) => s.setMask({ top: v })} />
-            <SliderRow label="Máscara inferior" value={s.mask.bottom} min={0} max={100} step={1} onChange={(v) => s.setMask({ bottom: v })} />
-            <SliderRow label="Máscara izquierda" value={s.mask.left} min={0} max={100} step={1} onChange={(v) => s.setMask({ left: v })} />
-            <SliderRow label="Máscara derecha" value={s.mask.right} min={0} max={100} step={1} onChange={(v) => s.setMask({ right: v })} />
-            <SliderRow label="Alcance / tamaño" value={s.mask.size} min={0} max={100} step={1} onChange={(v) => s.setMask({ size: v })} />
-            <SliderRow label="Suavidad (feather)" value={s.mask.feather} min={0} max={100} step={1} onChange={(v) => s.setMask({ feather: v })} />
-            <SliderRow label="Viñeteado" value={s.mask.vignette} min={0} max={100} step={1} onChange={(v) => s.setMask({ vignette: v })} />
+            <SliderRow label="Máscara superior" value={s.mask.top} min={0} max={150} step={1} onChange={(v) => s.setMask({ top: v })} />
+            <SliderRow label="Máscara inferior" value={s.mask.bottom} min={0} max={150} step={1} onChange={(v) => s.setMask({ bottom: v })} />
+            <SliderRow label="Máscara izquierda" value={s.mask.left} min={0} max={130} step={1} onChange={(v) => s.setMask({ left: v })} />
+            <SliderRow label="Máscara derecha" value={s.mask.right} min={0} max={130} step={1} onChange={(v) => s.setMask({ right: v })} />
+            <SliderRow label="Alcance / tamaño" value={s.mask.size} min={0} max={130} step={1} onChange={(v) => s.setMask({ size: v })} />
+            <SliderRow label="Suavidad (feather)" value={s.mask.feather} min={0} max={120} step={1} onChange={(v) => s.setMask({ feather: v })} />
+            <SliderRow label="Viñeteado" value={s.mask.vignette} min={0} max={120} step={1} onChange={(v) => s.setMask({ vignette: v })} />
           </div>
         </Section>
 

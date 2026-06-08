@@ -29,6 +29,7 @@ const baseDefaults: FieldValues = {
   dato3: "30·50€",
   dato3Label: "INTENSIVOS",
   rango: "1 – 29 JUL",
+  profesor: "IMPARTE: NOMBRE APELLIDO",
 };
 
 const blocks: BlockDef[] = [
@@ -117,7 +118,18 @@ const blocks: BlockDef[] = [
     fontFamily: "bebas", fontSize: 56, lineHeight: 1,
     color: "family", uppercase: true, labelSize: 16,
   },
+  // Nombre profesor/a
+  {
+    id: "profesor",
+    label: "Nombre profesor/a",
+    kind: "cta",
+    bind: "profesor",
+    x: 6, y: 96, align: "left",
+    fontFamily: "dm", fontSize: 18, letterSpacing: "0.16em", weight: 600,
+    color: "white", background: "family", uppercase: true, padding: 10,
+  },
 ];
+
 
 export const escuela: FamilyDefinition = {
   id: "escuela",
@@ -146,6 +158,7 @@ export const escuela: FamilyDefinition = {
         { id: "dato2Label", label: "Dato 2 — etiqueta", type: "text", maxLength: 16 },
         { id: "dato3", label: "Dato 3 — valor", type: "text", maxLength: 20 },
         { id: "dato3Label", label: "Dato 3 — etiqueta", type: "text", maxLength: 16 },
+        { id: "profesor", label: "Nombre profesor/a", type: "text", maxLength: 40 },
       ],
     },
     {
@@ -280,10 +293,10 @@ export const escuela: FamilyDefinition = {
           color: "white", background: "family", uppercase: true, padding: 10,
           storyOverrides: { x: 57.5, y: 78, fontSize: 20, padding: 12 },
         },
-        // Profesor / quien imparte
+        // Nombre profesor/a
         {
           id: "profesor",
-          label: "Profesor / Imparte",
+          label: "Nombre profesor/a",
           kind: "cta",
           bind: "profesor",
           x: 61, y: 99, align: "left",
@@ -318,7 +331,7 @@ export const escuela: FamilyDefinition = {
         { id: "horario", label: "Horario", type: "text", maxLength: 24 },
         { id: "precio", label: "Precio", type: "text", maxLength: 16 },
         { id: "cta", label: "CTA", type: "text", maxLength: 32 },
-        { id: "profesor", label: "Profesor / Imparte", type: "text", maxLength: 40 },
+        { id: "profesor", label: "Nombre profesor/a", type: "text", maxLength: 40 },
       ],
     },
 
