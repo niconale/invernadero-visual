@@ -195,9 +195,10 @@ function EditorPage() {
         <Section title="Bloques">
           <div className="space-y-3">
             {tpl.blocks.map((b) => {
-              const key = `${s.familyId}.${s.templateId}.${b.id}`;
-              const hidden = !!s.hiddenBlocks[key];
-              const size = s.blockSizes[key] ?? 1;
+              const legacyKey = `${s.familyId}.${s.templateId}.${b.id}`;
+              const pk = posKey(s.familyId, s.templateId, b.id, s.format);
+              const hidden = s.hiddenBlocks[pk] ?? s.hiddenBlocks[legacyKey] ?? false;
+              const size = s.blockSizes[pk] ?? s.blockSizes[legacyKey] ?? 1;
               const mergedHidden = s.familyId === "programacion" && s.mergeHoraPublico && b.id === "publico";
               return (
                 <div key={b.id} className="rounded border p-2" style={{ borderColor: "rgba(0,0,0,0.08)", opacity: mergedHidden ? 0.5 : 1 }}>
