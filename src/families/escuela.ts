@@ -158,6 +158,7 @@ export const escuela: FamilyDefinition = {
         { id: "dato2Label", label: "Dato 2 — etiqueta", type: "text", maxLength: 16 },
         { id: "dato3", label: "Dato 3 — valor", type: "text", maxLength: 20 },
         { id: "dato3Label", label: "Dato 3 — etiqueta", type: "text", maxLength: 16 },
+        { id: "profesor", label: "Nombre profesor/a", type: "text", maxLength: 40 },
       ],
     },
     {
