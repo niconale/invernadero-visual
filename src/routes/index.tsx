@@ -59,14 +59,21 @@ function EditorPage() {
   };
 
   const handleExport = async (format: "png" | "jpg") => {
-    if (!canvasRef.current) return;
+    if (!canvasRef.current) {
+      toast.error("No se pudo exportar. Revisa si hay imagen cargada o intenta de nuevo.");
+      return;
+    }
     setBusy(true);
     try {
       const name = `${slugify(fam.label)}_${slugify(tpl.label)}_${slugify(s.values.titulo || "pieza")}_${s.format.replace(":", "x")}`;
       await exportNode(canvasRef.current, format, dims.w, dims.h, name);
-      toast.success(`Exportado ${format.toUpperCase()}`);
-    } catch (e) { console.error(e); toast.error("No pude exportar."); }
-    finally { setBusy(false); }
+      toast.success(`Exportado ${format.toUpperCase()} · ${dims.w}×${dims.h}`);
+    } catch (e) {
+      console.error("[export] error", e);
+      toast.error("No se pudo exportar. Revisa si hay imagen cargada o intenta de nuevo.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   const handleCopy = async () => {
