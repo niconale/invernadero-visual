@@ -75,6 +75,36 @@ function EditorPage() {
     return () => window.removeEventListener("resize", fit);
   }, [dims.w, dims.h]);
 
+  // Inject custom Residencias display font (@font-face) when user uploads one.
+  useEffect(() => {
+    const id = "residencias-display-font";
+    const prev = document.getElementById(id);
+    if (prev) prev.remove();
+    if (!s.residenciasFont) return;
+    const style = document.createElement("style");
+    style.id = id;
+    style.textContent = `@font-face{font-family:"ResidenciasDisplay";src:url(${s.residenciasFont.dataUrl}) format("${s.residenciasFont.mime.includes("woff2") ? "woff2" : s.residenciasFont.mime.includes("woff") ? "woff" : s.residenciasFont.mime.includes("opentype") || s.residenciasFont.name.toLowerCase().endsWith(".otf") ? "opentype" : "truetype"}");font-weight:400 900;font-style:normal;font-display:swap;}`;
+    document.head.appendChild(style);
+    // Force a load so document.fonts.ready resolves with it.
+    try {
+      const fontFace = new FontFace("ResidenciasDisplay", `url(${s.residenciasFont.dataUrl})`);
+      fontFace.load().then((f) => (document as any).fonts?.add?.(f)).catch(() => {});
+    } catch {}
+    return () => { style.remove(); };
+  }, [s.residenciasFont]);
+
+  const onFontFile = async (file: File) => {
+    try {
+      const dataUrl = await readBlobAsDataUrl(file);
+      s.setResidenciasFont({ dataUrl, mime: file.type || "font/woff2", name: file.name });
+      toast.success(`Fuente cargada: ${file.name}`);
+    } catch (e) {
+      console.error("[font] failed", e);
+      toast.error("No se pudo cargar la fuente.");
+    }
+  };
+
+
   const onFile = async (file: File) => {
     try {
       const dataUrl = await readBlobAsDataUrl(file);
