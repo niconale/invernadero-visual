@@ -118,7 +118,18 @@ const blocks: BlockDef[] = [
     fontFamily: "bebas", fontSize: 56, lineHeight: 1,
     color: "family", uppercase: true, labelSize: 16,
   },
+  // Nombre profesor/a
+  {
+    id: "profesor",
+    label: "Nombre profesor/a",
+    kind: "cta",
+    bind: "profesor",
+    x: 6, y: 96, align: "left",
+    fontFamily: "dm", fontSize: 18, letterSpacing: "0.16em", weight: 600,
+    color: "white", background: "family", uppercase: true, padding: 10,
+  },
 ];
+
 
 export const escuela: FamilyDefinition = {
   id: "escuela",
